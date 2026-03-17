@@ -1,8 +1,7 @@
-<img width="1357" height="1009" alt="image" src="https://github.com/user-attachments/assets/4f4c5ba0-4384-414c-a914-3539d998218f" />
-
 # Sorting Algorithms Visualizer (Bubble,Insertion,Merge Sort)
 
 This interactive web application is designed to help students and beginners truly understand how fundamental sorting algorithms work behind the scenes.
+<img width="1357" height="1009" alt="image" src="https://github.com/user-attachments/assets/4f4c5ba0-4384-414c-a914-3539d998218f" />
 
 ## 🎯 Why Use This Tool?
 
