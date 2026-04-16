@@ -6,49 +6,48 @@
     <title>Sorting Algorithms Visualizer - HKDSE ICT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- MathJax Configuration and Script -->
     <script>
         window.MathJax = {
             tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
-            startup: { typeset: false } // Trigger typesetting manually to prevent rendering bugs
+            startup: { typeset: false } 
         };
     </script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; overflow-y: hidden; /* Prevent body scroll, let columns scroll */ }
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; overflow-y: hidden; }
         
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         .bar { transition: height 0.15s ease, background-color 0.15s ease; }
-        .glass-panel { background: rgba(255, 255, 255, 0.97); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); }
+        .glass-panel { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); }
         pre { white-space: pre-wrap; word-wrap: break-word; }
         .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
         
-        /* Code Highlighting Custom Colors */
-        .token-kw { color: #f472b6; font-weight: 600; } /* Pink/Magenta */
-        .token-type { color: #38bdf8; font-weight: 600; } /* Light Blue */
-        .token-comment { color: #94a3b8; font-style: italic; } /* Slate */
-        .token-num { color: #a78bfa; } /* Purple */
-        .token-func { color: #fcd34d; font-weight: 600;} /* Yellow */
+        /* Light Theme Code Highlighting Custom Colors */
+        .token-kw { color: #d946ef; font-weight: 600; } /* pink-500 */
+        .token-type { color: #0284c7; font-weight: 600; } /* sky-600 */
+        .token-comment { color: #64748b; font-style: italic; } /* slate-500 */
+        .token-num { color: #7c3aed; } /* violet-600 */
+        .token-func { color: #ea580c; font-weight: 600;} /* orange-600 */
         
-        /* Quiz Radio Custom */
         .quiz-radio:checked + div { border-color: #3b82f6; background-color: #eff6ff; }
+        
+        .metric-transition { animation: pulse 0.3s ease-out; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 h-screen flex flex-col">
 
-    <!-- Header -->
     <header class="bg-white shadow-sm border-b border-slate-200 flex-shrink-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <i class="fa-solid fa-layer-group text-blue-600 text-2xl"></i>
-                <h1 class="font-bold text-xl text-slate-900" data-i18n="title">Sorting Visualizer</h1>
+                <div class="bg-blue-100 p-2 rounded-lg"><i class="fa-solid fa-layer-group text-blue-600 text-xl"></i></div>
+                <h1 class="font-bold text-xl text-slate-900 tracking-tight" data-i18n="title">Sorting Visualizer</h1>
             </div>
             <div class="flex items-center gap-4">
                 <span class="text-sm text-slate-400 hidden sm:inline-block font-medium">Created by Sam Li</span>
@@ -60,66 +59,55 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="flex-grow max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full flex flex-col lg:flex-row gap-6 overflow-hidden">
         
-        <!-- Left Column: Visualizer & Controls (Scrollable independently on mobile) -->
         <div class="w-full lg:w-2/5 flex flex-col gap-4 overflow-y-auto lg:overflow-visible pr-1 h-full">
             
-            <!-- Visualizer Screen -->
             <div class="glass-panel rounded-2xl shadow-sm p-4 flex flex-col relative bg-white flex-shrink-0">
                 <div class="flex flex-wrap items-center justify-between mb-4 z-10 gap-2">
                     <div class="flex gap-2">
-                        <div class="tooltip-container relative bg-blue-50 px-3 py-1.5 rounded-lg shadow-sm border border-blue-100 cursor-help">
-                            <span class="text-xs font-semibold text-slate-600 uppercase tracking-wide"><span data-i18n="comparisons">Comparisons</span>:</span> 
-                            <span id="metric-comp" class="text-blue-700 font-bold text-lg ml-1">0</span>
+                        <div class="tooltip-container relative bg-blue-50 px-3 py-1.5 rounded-lg shadow-sm border border-blue-100 cursor-help min-w-[120px]">
+                            <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wide block leading-none mb-1"><span data-i18n="comparisons">Comparisons</span></span> 
+                            <span id="metric-comp-display" class="text-blue-900 font-bold text-lg leading-none">0</span>
                         </div>
-                        <div class="tooltip-container relative bg-emerald-50 px-3 py-1.5 rounded-lg shadow-sm border border-emerald-100 cursor-help">
-                            <span class="text-xs font-semibold text-slate-600 uppercase tracking-wide"><span data-i18n="arrayAccess">Array Accesses</span>:</span> 
-                            <span id="metric-access" class="text-emerald-700 font-bold text-lg ml-1">0</span>
+                        <div class="tooltip-container relative bg-emerald-50 px-3 py-1.5 rounded-lg shadow-sm border border-emerald-100 cursor-help min-w-[120px]">
+                            <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wide block leading-none mb-1"><span data-i18n="arrayAccess">Accesses</span></span> 
+                            <span id="metric-access-display" class="text-emerald-900 font-bold text-lg leading-none">0</span>
                         </div>
                     </div>
-                    <!-- Color Legend -->
-                    <div class="flex gap-3 text-xs font-medium text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                    <div class="flex gap-3 text-[11px] font-semibold text-slate-500 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
                         <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 bg-blue-400 rounded-full"></div> <span data-i18n="legUnsorted">Unsorted</span></div>
                         <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 bg-amber-400 rounded-full shadow-[0_0_5px_rgba(251,191,36,0.8)]"></div> <span data-i18n="legActive">Active</span></div>
                         <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 bg-emerald-500 rounded-full"></div> <span data-i18n="legSorted">Sorted</span></div>
                     </div>
                 </div>
                 
-                <!-- Bars Container -->
                 <div id="bars-container" class="h-48 sm:h-64 md:h-80 flex items-end justify-center gap-[2px] sm:gap-1 pb-1 border-b-2 border-slate-100">
-                    <!-- Bars injected by JS -->
-                </div>
+                    </div>
 
-                <!-- Progress Bar -->
                 <div class="w-full bg-slate-100 rounded-full h-1.5 mt-4 overflow-hidden">
                     <div id="progress-bar" class="bg-blue-500 h-1.5 rounded-full transition-all duration-200" style="width: 0%"></div>
                 </div>
             </div>
 
-            <!-- Controls -->
             <div class="glass-panel rounded-2xl shadow-sm p-4 sm:p-5 bg-white flex flex-col gap-5 flex-shrink-0">
                 <div class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
-                    <!-- Algorithm Selector (Fixed Wrapping Issue) -->
                     <div class="flex flex-wrap gap-2 w-full xl:w-auto">
                         <button onclick="selectAlgo('bubble')" id="algo-bubble" class="algo-btn flex-grow xl:flex-none px-3 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-md shadow-blue-200 transition-all" data-i18n="bubbleSort">Bubble Sort</button>
                         <button onclick="selectAlgo('insertion')" id="algo-insertion" class="algo-btn flex-grow xl:flex-none px-3 py-2 rounded-xl text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all whitespace-nowrap" data-i18n="insertionSort">Insertion Sort</button>
                         <button onclick="selectAlgo('merge')" id="algo-merge" class="algo-btn flex-grow xl:flex-none px-3 py-2 rounded-xl text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all whitespace-nowrap" data-i18n="mergeSort">Merge Sort</button>
                     </div>
                     
-                    <!-- Playback Controls -->
                     <div class="flex items-center justify-center gap-2 w-full xl:w-auto mt-2 xl:mt-0">
                         <button onclick="generateNewArray()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors flex-shrink-0" title="New Random Array"><i class="fa-solid fa-dice"></i></button>
                         <button onclick="resetToOriginal()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors flex-shrink-0" title="Reset Current Array"><i class="fa-solid fa-rotate-left"></i></button>
-                        <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                        <div class="w-px h-6 bg-slate-200 mx-1"></div>
                         <button onclick="stepBackward()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors flex-shrink-0" title="Previous Step"><i class="fa-solid fa-step-backward"></i></button>
                         <button onclick="togglePlay()" id="btn-play" class="w-12 h-12 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 flex items-center justify-center text-lg shadow-lg shadow-emerald-200 transition-transform active:scale-95 flex-shrink-0"><i class="fa-solid fa-play ml-0.5"></i></button>
                         <button onclick="stepForward()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors flex-shrink-0" title="Next Step"><i class="fa-solid fa-step-forward"></i></button>
                     </div>
                 </div>
 
-                <!-- Options -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
                     <div class="flex flex-col gap-1.5">
                         <label class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide" data-i18n="arrayPattern">Data Pattern</label>
@@ -148,7 +136,6 @@
                 </div>
             </div>
 
-            <!-- Current Step Explanation -->
             <div class="glass-panel rounded-2xl shadow-sm p-4 sm:p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 flex-shrink-0 mb-4 lg:mb-0">
                 <h3 class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2 flex items-center gap-2">
                     <i class="fa-solid fa-chalkboard-user"></i> <span data-i18n="currentStep">Live Explanation</span>
@@ -157,118 +144,109 @@
             </div>
         </div>
 
-        <!-- Right Column: Educational Content (Scrollable internally) -->
         <div class="w-full lg:w-3/5 flex flex-col h-full glass-panel rounded-2xl shadow-sm bg-white border-slate-200 overflow-hidden" id="info-panel-content">
             
-            <!-- Top Section: Header & Implementation Code (Sticky at top of right column) -->
-            <div class="flex-shrink-0 shadow-sm z-20">
-                <!-- Pedagogical Header -->
-                <div class="bg-[#1e293b] text-white p-4 sm:p-5 border-b-[4px] border-blue-500">
-                    <div class="flex justify-between items-end mb-3">
+            <div class="flex-shrink-0 z-20">
+                <div class="bg-gradient-to-br from-slate-50 to-blue-50/50 p-4 sm:p-5 border-b-[3px] border-blue-400 relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 text-blue-100/50 text-8xl opacity-50 pointer-events-none">
+                        <i class="fa-solid fa-book-journal-whills"></i>
+                    </div>
+                    <div class="relative z-10 flex justify-between items-end mb-3">
                         <div>
-                            <div class="text-blue-400 text-[10px] font-bold tracking-widest uppercase mb-1" data-i18n="algoTheory">Algorithm Theory</div>
-                            <h2 id="info-title" class="text-xl sm:text-2xl font-bold">Bubble Sort</h2>
+                            <div class="text-blue-500 text-[10px] font-bold tracking-widest uppercase mb-1" data-i18n="algoTheory">Algorithm Theory</div>
+                            <h2 id="info-title" class="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">Bubble Sort</h2>
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-[#0f172a] rounded-lg p-2 sm:p-3 border border-slate-700">
-                            <div class="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1" data-i18n="timeComp">Time Complexity</div>
-                            <div id="info-time" class="text-base sm:text-lg font-bold text-emerald-400">\(\mathcal{O}(n^2)\)</div>
+                    <div class="grid grid-cols-2 gap-3 relative z-10">
+                        <div class="bg-white/80 backdrop-blur rounded-xl p-3 border border-slate-200 shadow-sm">
+                            <div class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1" data-i18n="timeComp">Time Complexity</div>
+                            <div id="info-time" class="text-base sm:text-lg font-black text-blue-600">\(\mathcal{O}(n^2)\)</div>
                         </div>
-                        <div class="bg-[#0f172a] rounded-lg p-2 sm:p-3 border border-slate-700">
-                            <div class="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1" data-i18n="spaceComp">Space Complexity</div>
-                            <div id="info-space" class="text-base sm:text-lg font-bold text-amber-400">\(\mathcal{O}(1)\)</div>
+                        <div class="bg-white/80 backdrop-blur rounded-xl p-3 border border-slate-200 shadow-sm">
+                            <div class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1" data-i18n="spaceComp">Space Complexity</div>
+                            <div id="info-space" class="text-base sm:text-lg font-black text-amber-600">\(\mathcal{O}(1)\)</div>
                         </div>
                     </div>
                 </div>
-
-          
             </div>
 
-            <!-- Scrollable Pedagogical Content -->
-            <div class="p-4 sm:p-5 overflow-y-auto flex-grow text-sm text-slate-700 space-y-6 pb-24">
+            <div class="p-4 sm:p-5 overflow-y-auto flex-grow text-sm text-slate-700 space-y-7 pb-24">
                 
-                <!-- 1. Learning Objectives -->
                 <section>
                     <h3 class="font-bold text-slate-900 mb-2 flex items-center gap-2 text-base">
-                        <i class="fa-solid fa-bullseye text-red-500"></i> <span data-i18n="objTitle">Learning Objectives</span>
+                        <i class="fa-solid fa-bullseye text-rose-500"></i> <span data-i18n="objTitle">Learning Objectives</span>
                     </h3>
-                    <p class="leading-relaxed bg-red-50/50 p-3 rounded-lg border border-red-100" data-i18n="objDesc">
-                        Understand the mechanics of standard sorting algorithms, analyze their time and space complexities, and evaluate their suitability for different datasets.
-                    </p>
+                    <p class="leading-relaxed bg-rose-50/50 p-3 rounded-xl border border-rose-100 text-slate-700" data-i18n="objDesc"></p>
                 </section>
 
-                <!-- 2. Concept -->
                 <section>
-                    <h3 class="font-bold text-slate-900 mb-2 flex items-center gap-2 text-base">
-                        <i class="fa-solid fa-book-open text-blue-500"></i> <span data-i18n="howItWorks">Concept</span>
+                    <h3 class="font-bold text-slate-900 mb-2 flex items-center gap-2 text-base border-b pb-2 border-slate-100">
+                        <i class="fa-solid fa-lightbulb text-amber-500"></i> <span data-i18n="howItWorks">Concept</span>
                     </h3>
-                    <p id="info-desc" class="leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100"></p>
+                    <p id="info-desc" class="leading-relaxed p-2 text-slate-700"></p>
                 </section>
 
-                <!-- 3. Complexity Explained -->
-                <section class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4">
-                    <h3 class="font-bold text-indigo-900 mb-2 flex items-center gap-2 text-base">
-                        <i class="fa-solid fa-magnifying-glass-chart text-indigo-500"></i> <span data-i18n="complexityExp">Deduction of Complexity</span>
+                <section class="bg-blue-50/40 border border-blue-100 rounded-xl p-4 shadow-sm">
+                    <h3 class="font-bold text-blue-900 mb-2 flex items-center gap-2 text-base">
+                        <i class="fa-solid fa-magnifying-glass-chart text-blue-500"></i> <span data-i18n="complexityExp">Deduction of Complexity</span>
                     </h3>
-                    <div id="info-complexity-desc" class="text-indigo-800 leading-relaxed space-y-2"></div>
+                    <div id="info-complexity-desc" class="text-slate-700 leading-relaxed space-y-2"></div>
                 </section>
 
-                <!-- 4. Pattern Impact -->
-                <section class="bg-amber-50/50 border border-amber-100 rounded-xl p-4">
-                    <h3 class="font-bold text-amber-900 mb-2 flex items-center gap-2 text-base">
-                        <i class="fa-solid fa-shapes text-amber-500"></i> <span data-i18n="patternImpact">Data Pattern Impact</span>
+                <section class="bg-emerald-50/40 border border-emerald-100 rounded-xl p-4 shadow-sm">
+                    <h3 class="font-bold text-emerald-900 mb-2 flex items-center gap-2 text-base">
+                        <i class="fa-solid fa-shapes text-emerald-500"></i> <span data-i18n="patternImpact">Data Pattern Impact</span>
                     </h3>
-                    <div id="info-pattern-desc" class="text-amber-800 leading-relaxed space-y-2"></div>
+                    <div id="info-pattern-desc" class="text-slate-700 leading-relaxed space-y-2"></div>
                 </section>
                 
-                <!-- 5. Misconceptions -->
-                <section class="bg-rose-50/50 border border-rose-100 rounded-xl p-4 relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 opacity-10 text-rose-500 text-6xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                    <h3 class="font-bold text-rose-800 mb-2 flex items-center gap-2 text-base relative z-10">
-                        <i class="fa-solid fa-lightbulb text-rose-500"></i> <span data-i18n="miscTitle">Misconception Alert</span>
+                <section class="bg-rose-50 border border-rose-200 rounded-xl p-4 relative overflow-hidden shadow-sm">
+                    <div class="absolute -right-4 -top-4 opacity-[0.03] text-rose-800 text-8xl pointer-events-none"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <h3 class="font-bold text-rose-900 mb-2 flex items-center gap-2 text-base relative z-10">
+                        <i class="fa-solid fa-bolt text-rose-500"></i> <span data-i18n="miscTitle">Misconception Alert</span>
                     </h3>
-                    <p id="info-misc" class="text-rose-700 leading-relaxed relative z-10 font-medium"></p>
+                    <p id="info-misc" class="text-rose-800 leading-relaxed relative z-10"></p>
                 </section>
 
-                <!-- 6. Think & Link -->
                 <section>
                     <h3 class="font-bold text-slate-900 mb-2 flex items-center gap-2 text-base">
                         <i class="fa-solid fa-link text-purple-500"></i> <span data-i18n="linkTitle">Think & Link</span>
                     </h3>
-                    <div class="bg-purple-50/50 rounded-xl border border-purple-100 overflow-hidden">
-                        <button onclick="toggleAnswer()" class="w-full text-left p-3.5 flex justify-between items-center hover:bg-purple-100/50 transition-colors">
-                            <span id="info-link-q" class="font-semibold text-purple-900 pr-4"></span>
-                            <i id="link-chevron" class="fa-solid fa-chevron-down text-purple-400 transition-transform"></i>
+                    <div class="bg-purple-50/50 rounded-xl border-2 border-dashed border-purple-300 overflow-hidden hover:border-purple-400 transition-colors">
+                        <button onclick="toggleAnswer()" class="w-full text-left p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 focus:outline-none focus:bg-purple-100/50 transition-colors group cursor-pointer">
+                            <span id="info-link-q" class="font-semibold text-purple-900 leading-relaxed flex-grow"></span>
+                            <div class="flex items-center gap-2 flex-shrink-0 bg-purple-600 text-white px-3 py-1.5 rounded-lg shadow-sm group-hover:bg-purple-700 transition-colors">
+                                <span class="text-xs font-bold tracking-wide" data-i18n="revealAns">Reveal</span>
+                                <i id="link-chevron" class="fa-solid fa-chevron-down transition-transform"></i>
+                            </div>
                         </button>
-                        <div id="info-link-a" class="hidden p-3.5 pt-0 text-purple-800 leading-relaxed border-t border-purple-100/50 mt-1"></div>
+                        <div id="info-link-a" class="hidden p-4 pt-2 text-purple-900 leading-relaxed border-t border-purple-200/50 bg-white/50"></div>
                     </div>
                 </section>
                 
-                      <!-- Code Implementation (Moved Up) -->
-                <div class="bg-[#1e293b]">
-                    <div class="flex bg-[#0f172a]">
-                        <div class="px-4 py-2 flex items-center gap-2 border-r border-slate-700 bg-[#1e293b]">
-                            <i class="fa-solid fa-code text-slate-400 text-xs"></i>
-                            <span class="text-xs font-bold text-slate-300 tracking-wide uppercase" data-i18n="codeImplTitle">Code</span>
+                <section class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="flex items-center justify-between bg-slate-100 border-b border-slate-200 px-2 py-1.5">
+                        <div class="flex items-center gap-2 px-2">
+                            <i class="fa-solid fa-code text-slate-400 text-sm"></i>
+                            <span class="text-xs font-bold text-slate-600 tracking-wide uppercase" data-i18n="codeImplTitle">Implementation</span>
                         </div>
-                        <button onclick="showCode('python')" id="tab-python" class="flex-1 py-2 text-xs font-bold uppercase border-blue-400 bg-[#1e293b] transition-colors">Python</button>
-                        <button onclick="showCode('cpp')" id="tab-cpp" class="flex-1 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors">C++</button>
+                        <div class="flex bg-slate-200/80 p-1 rounded-lg">
+                            <button onclick="showCode('python')" id="tab-python" class="px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md text-blue-600 bg-white shadow-sm transition-all">Python</button>
+                            <button onclick="showCode('cpp')" id="tab-cpp" class="px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md text-slate-500 hover:text-slate-800 transition-all">C++</button>
+                        </div>
                     </div>
-                    <div class="p-3 sm:p-4 overflow-x-auto max-h-[30vh] sm:max-h-[35vh]">
-                        <pre><code id="code-block" class="text-slate-300 font-mono text-xs sm:text-[13px] leading-relaxed"></code></pre>
+                    <div class="bg-slate-50 p-4 overflow-x-auto">
+                        <pre><code id="code-block" class="text-slate-800 font-mono text-[13px] leading-relaxed"></code></pre>
                     </div>
-                </div>
-                
-                <!-- 7. Self-Assessment (Quiz) -->
-                <section>
-                    <h3 class="font-bold text-slate-900 mb-3 flex items-center gap-2 text-base">
+                </section>
+
+                <section class="pt-4 border-t border-slate-200">
+                    <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2 text-base">
                         <i class="fa-solid fa-clipboard-check text-emerald-500"></i> <span data-i18n="quizTitle">Self-Assessment</span>
                     </h3>
-                    <div id="quiz-container" class="space-y-4">
-                        <!-- Quiz generated by JS -->
-                    </div>
+                    <div id="quiz-container" class="space-y-6">
+                        </div>
                 </section>
 
             </div>
@@ -302,9 +280,8 @@
                 algoTheory: "Algorithm Theory",
                 timeComp: "Time Complexity",
                 spaceComp: "Space Complexity",
-                codeImplTitle: "Code",
+                codeImplTitle: "Implementation",
                 
-                // Pedagogical Flow Titles
                 objTitle: "Learning Objectives",
                 objDesc: "Understand the mechanics of standard sorting algorithms, analyze their time and space complexities, and evaluate their suitability for different datasets.",
                 howItWorks: "Concept Explanation",
@@ -312,6 +289,7 @@
                 patternImpact: "Data Pattern Impact",
                 miscTitle: "Misconception Alert",
                 linkTitle: "Think & Link",
+                revealAns: "Reveal Answer",
                 quizTitle: "Self-Assessment",
                 quizCorrect: "Correct!",
                 quizWrong: "Incorrect.",
@@ -321,33 +299,33 @@
                 patReversed: "Reversed (Worst Case)",
                 patNearly: "Nearly Sorted (Best Case)",
                 
-                // --- Bubble Sort ---
+                // Bubble Sort
                 bubbleDesc: "Bubble Sort repeatedly steps through the array, compares adjacent elements, and swaps them if they are in the wrong order. Like lighter bubbles rising to the top of a glass, the largest unsorted item 'bubbles up' to its correct final position at the end of the array in each pass.",
                 bubbleTime: "\\(\\mathcal{O}(n^2)\\)",
                 bubbleSpace: "\\(\\mathcal{O}(1)\\)",
                 bubbleCompExp: "<strong>Why Time is \\(\\mathcal{O}(n^2)\\)?</strong><br>The algorithm uses nested loops. The outer loop runs \\(n\\) times. In each pass, the inner loop makes up to \\(n\\) comparisons. Total operations are roughly \\(n \\times n = n^2\\).<br><br><strong>Why Space is \\(\\mathcal{O}(1)\\)?</strong><br>It is an <em>in-place sorting</em> algorithm. Elements are swapped directly within the original array using only one temporary variable.",
                 bubblePatExp: "<strong>Nearly Sorted: \\(\\mathcal{O}(n)\\)</strong><br>By introducing a <code>swapped</code> boolean flag, the algorithm detects if the array is already sorted. If a full pass occurs without any swaps, it breaks early.<br><br><strong>Reversed (Worst Case): \\(\\mathcal{O}(n^2)\\)</strong><br>Every adjacent pair is out of order, forcing the algorithm to perform the maximum possible number of swaps.",
-                bubbleMisc: "Myth: 'Bubble sort is always the slowest algorithm.'<br>Reality: If the array is already sorted, an optimized bubble sort with a 'swapped' flag completes in \\(\\mathcal{O}(n)\\) time, which is faster than Merge Sort's best case!",
+                bubbleMisc: "<strong>Myth:</strong> 'Bubble sort is always the slowest algorithm.'<br><strong>Reality:</strong> If the array is already sorted, an optimized bubble sort with a 'swapped' flag completes in \\(\\mathcal{O}(n)\\) time, which is faster than Merge Sort's best case!",
                 bubbleLinkQ: "Why do we iterate 'n - i - 1' times in the inner loop instead of 'n - 1'?",
                 bubbleLinkA: "After the \\(i\\)-th pass, the largest \\(i\\) elements are already guaranteed to be sorted at the end of the array. Comparing them again is redundant and wastes computational resources.",
                 
-                // --- Insertion Sort ---
+                // Insertion Sort
                 insertionDesc: "Insertion Sort builds the final sorted array one item at a time. It assumes the first element is sorted. Then, it picks the next unsorted element (the <code>key</code>) and compares it backwards, <em>shifting</em> larger elements to the right until the correct position for the <code>key</code> is found.",
                 insertionTime: "\\(\\mathcal{O}(n^2)\\)",
                 insertionSpace: "\\(\\mathcal{O}(1)\\)",
                 insertionCompExp: "<strong>Why Time is \\(\\mathcal{O}(n^2)\\)?</strong><br>In the worst case, to insert the \\(i\\)-th element, you must shift all \\(i-1\\) previous elements. The sum of shifts is \\(1 + 2 + 3 + ... + (n-1) \\approx \\frac{n^2}{2}\\). Dropping the constant gives \\(\\mathcal{O}(n^2)\\).<br><br><strong>Why Space is \\(\\mathcal{O}(1)\\)?</strong><br>It is an <em>in-place</em> sort. It only requires a single variable (<code>key</code>) to temporarily hold the current item being inserted.",
                 insertionPatExp: "<strong>Nearly Sorted (Best Case): \\(\\mathcal{O}(n)\\)</strong><br>The inner <code>while</code> loop condition <code>arr[j] > key</code> immediately fails. The inner loop never executes, making the time complexity strictly linear.<br><br><strong>Efficiency note:</strong> Insertion sort uses <em>shifting</em> (2 array accesses per shift), which is faster than Bubble sort's <em>swapping</em> (4 array accesses per swap).",
-                insertionMisc: "Myth: 'Insertion sort is useless compared to advanced algorithms.'<br>Reality: Insertion sort has extremely low constant overhead. For very small arrays (e.g., < 20 items), it is often faster than Quicksort or Merge Sort.",
+                insertionMisc: "<strong>Myth:</strong> 'Insertion sort is useless compared to advanced algorithms.'<br><strong>Reality:</strong> Insertion sort has extremely low constant overhead. For very small arrays (e.g., < 20 items), it is often faster than Quicksort or Merge Sort.",
                 insertionLinkQ: "Notice the 'Accesses' counter. Why does Insertion Sort often have fewer array accesses than Bubble Sort?",
                 insertionLinkA: "Bubble sort uses swapping, which costs 4 array accesses (read A, read B, write A, write B). Insertion sort uses shifting, which only costs 2 accesses (read, write) per shift. It's more memory-efficient.",
 
-                // --- Merge Sort ---
+                // Merge Sort
                 mergeDesc: "Merge Sort uses a <strong>Divide and Conquer</strong> strategy. It recursively divides the array in half until each sub-array contains only one element (inherently sorted). Then, it calls the <code>merge</code> function to combine these small sorted arrays back into larger sorted arrays.",
                 mergeTime: "\\(\\mathcal{O}(n \\log n)\\)",
                 mergeSpace: "\\(\\mathcal{O}(n)\\)",
                 mergeCompExp: "<strong>Why Time is \\(\\mathcal{O}(n \\log n)\\)?</strong><br>The array is repeatedly halved. This division forms a tree of depth \\(\\log_2 n\\). At every level of this tree, the <code>merge</code> operation processes a total of \\(n\\) elements. Therefore: <code>Depth</code> \\(\\times\\) <code>Work per level</code> = \\(\\mathcal{O}(n \\log n)\\).<br><br><strong>Why Space is \\(\\mathcal{O}(n)\\)?</strong><br>Standard Merge Sort is <em>not</em> in-place. The <code>merge</code> function requires creating temporary arrays (<code>L</code> and <code>R</code>) to hold the split halves before copying them back.",
                 mergePatExp: "<strong>Consistent Performance:</strong><br>Merge sort is completely blind to the initial data pattern. Whether the data is Random, Reversed, or already Sorted, it systematically divides everything to single elements and merges them. It consistently takes \\(\\mathcal{O}(n \\log n)\\) time.<br><strong>Drawback:</strong> It cannot take advantage of already sorted datasets to terminate early.",
-                mergeMisc: "Myth: 'Merge Sort is universally the best because it is \\(\\mathcal{O}(n \\log n)\\).'<br>Reality: While time-efficient, its \\(\\mathcal{O}(n)\\) space complexity makes it unsuitable for systems with strict memory constraints (like embedded systems).",
+                mergeMisc: "<strong>Myth:</strong> 'Merge Sort is universally the best because it is \\(\\mathcal{O}(n \\log n)\\).'<br><strong>Reality:</strong> While time-efficient, its \\(\\mathcal{O}(n)\\) space complexity makes it unsuitable for systems with strict memory constraints (like embedded systems).",
                 mergeLinkQ: "Merge Sort doesn't care if the array is already sorted; it still takes \\(\\mathcal{O}(n \\log n)\\) time. Why?",
                 mergeLinkA: "The standard Merge Sort algorithm blindly splits the array down to single elements and merges them back up. It lacks the adaptive mechanism (like Insertion Sort's inner loop condition) to detect existing sorted sequences."
             },
@@ -374,9 +352,8 @@
                 algoTheory: "演算法理論 (Algorithm Theory)",
                 timeComp: "時間複雜度 (Time Complexity)",
                 spaceComp: "空間複雜度 (Space Complexity)",
-                codeImplTitle: "程式實作 (Code)",
+                codeImplTitle: "程式實作 (Code Implementation)",
                 
-                // Pedagogical Flow Titles
                 objTitle: "學習目標 (Learning Objectives)",
                 objDesc: "理解標準排序演算法 (Sorting Algorithms) 的運作機制，分析其時間複雜度 (Time Complexity) 與空間複雜度 (Space Complexity)，並評估其在不同數據集下的適用性。",
                 howItWorks: "深度解構 (Concept)",
@@ -384,6 +361,7 @@
                 patternImpact: "資料分布的影響 (Data Pattern Impact)",
                 miscTitle: "常見迷思 (Misconceptions)",
                 linkTitle: "思考與連結 (Think & Link)",
+                revealAns: "點擊查看解答",
                 quizTitle: "自我檢測 (Self-Assessment)",
                 quizCorrect: "答對了！",
                 quizWrong: "答錯了。",
@@ -393,45 +371,46 @@
                 patReversed: "完全反向 (Worst Case)",
                 patNearly: "幾乎排序完成 (Best Case)",
                 
-                // --- Bubble Sort ---
+                // Bubble Sort
                 bubbleDesc: "氣泡排序 (Bubble Sort) 透過重複走訪陣列 (Array)，比較相鄰元素，若順序錯誤則將其交換 (Swap)。每一輪走訪都會把未排序中最大的數字「浮」到陣列末端的正確位置。",
                 bubbleTime: "\\(\\mathcal{O}(n^2)\\)",
                 bubbleSpace: "\\(\\mathcal{O}(1)\\)",
                 bubbleCompExp: "<strong>為何時間是 \\(\\mathcal{O}(n^2)\\)？</strong><br>演算法使用嵌套迴圈 (Nested Loops)。外層迴圈執行 \\(n\\) 次。在每一次走訪中，內層迴圈最多進行 \\(n\\) 次比較。因此總運算次數約為 \\(n \\times n = n^2\\)。<br><br><strong>為何空間是 \\(\\mathcal{O}(1)\\)？</strong><br>這是一種<em>原地排序 (In-place sorting)</em> 演算法。元素直接在原陣列內交換，只需一個暫存變數 (Variable)，無需額外建立陣列。",
                 bubblePatExp: "<strong>幾乎排序完成：\\(\\mathcal{O}(n)\\)</strong><br>透過加入 <code>swapped</code> 布林 (Boolean) 標記，程式能偵測陣列是否已排好。若完整走訪一次而未發生任何交換，迴圈將提早結束 (Break)。<br><br><strong>完全反向 (最壞情況)：\\(\\mathcal{O}(n^2)\\)</strong><br>每一對相鄰元素的順序都是錯的，迫使演算法執行最大次數的交換。",
-                bubbleMisc: "迷思：「氣泡排序永遠是最慢的演算法。」<br>事實：如果陣列已經接近排序完成，加入 'swapped' 標記優化的氣泡排序只需 \\(\\mathcal{O}(n)\\) 的時間就能完成，這比合併排序的最佳情況還要快！",
+                bubbleMisc: "<strong>迷思：</strong>「氣泡排序永遠是最慢的演算法。」<br><strong>事實：</strong>如果陣列已經接近排序完成，加入 'swapped' 標記優化的氣泡排序只需 \\(\\mathcal{O}(n)\\) 的時間就能完成，這比合併排序的最佳情況還要快！",
                 bubbleLinkQ: "為什麼內層迴圈的執行次數是 'n - i - 1' 而不是 'n - 1'？",
                 bubbleLinkA: "在第 \\(i\\) 輪過後，最大的 \\(i\\) 個元素已經確定被排在陣列的最後面了。再次比較它們是多餘的，會浪費運算資源 (Computational resources)。",
 
-                // --- Insertion Sort ---
+                // Insertion Sort
                 insertionDesc: "插入排序 (Insertion Sort) 假設第一個元素已排序，然後抽出下一個未排序的元素 (稱為 <code>key</code>)，不斷往回比較，把較大的元素向右<em>平移 (Shift)</em>，直到找到正確的位置插入。",
                 insertionTime: "\\(\\mathcal{O}(n^2)\\)",
                 insertionSpace: "\\(\\mathcal{O}(1)\\)",
                 insertionCompExp: "<strong>為何時間是 \\(\\mathcal{O}(n^2)\\)？</strong><br>在最壞情況下，要插入第 \\(i\\) 個元素，必須將前面 \\(i-1\\) 個元素全部向右平移。平移總次數為 \\(1 + 2 + 3 + ... + (n-1) \\approx \\frac{n^2}{2}\\)，忽略常數項後即為 \\(\\mathcal{O}(n^2)\\)。<br><br><strong>為何空間是 \\(\\mathcal{O}(1)\\)？</strong><br>這也是<em>原地排序 (In-place sorting)</em>，只需一個額外的變數 (<code>key</code>) 來暫存當前準備插入的元素。",
                 insertionPatExp: "<strong>幾乎排序完成 (最佳情況)：\\(\\mathcal{O}(n)\\)</strong><br>插入排序在此情況下效率極高。因為內層 <code>while</code> 迴圈的條件 <code>arr[j] > key</code> 會立即失敗，時間複雜度呈線性。<br><br><strong>存取次數優勢：</strong><br>插入排序使用<em>平移</em> (讀取+寫入 = 2 次存取)，這比起氣泡排序的<em>交換</em> (4 次存取) 更加節省記憶體頻寬。",
-                insertionMisc: "迷思：「與進階演算法相比，插入排序毫無用處。」<br>事實：插入排序的常數開銷 (Constant overhead) 極低。對於極小的陣列（如 < 20 個項目），它通常比快速排序 (Quicksort) 或合併排序更快。",
+                insertionMisc: "<strong>迷思：</strong>「與進階演算法相比，插入排序毫無用處。」<br><strong>事實：</strong>插入排序的常數開銷 (Constant overhead) 極低。對於極小的陣列（如 < 20 個項目），它通常比快速排序 (Quicksort) 或合併排序更快。",
                 insertionLinkQ: "觀察「陣列存取 (Array Accesses)」計數器。為什麼插入排序的存取次數通常比氣泡排序少？",
                 insertionLinkA: "氣泡排序使用「交換 (Swap)」，每次成本為 4 次陣列存取（讀A、讀B、寫A、寫B）。插入排序使用「平移 (Shift)」，每次平移只需 2 次存取（讀取、寫入），更加節省記憶體頻寬。",
 
-                // --- Merge Sort ---
+                // Merge Sort
                 mergeDesc: "合併排序 (Merge Sort) 採用<strong>「分而治之」(Divide and Conquer)</strong> 策略。它遞迴地將陣列對半切分，直到子陣列只剩單一元素。然後呼叫 <code>merge</code> 函數，將這些小陣列合併成已排序的大陣列。",
                 mergeTime: "\\(\\mathcal{O}(n \\log n)\\)",
                 mergeSpace: "\\(\\mathcal{O}(n)\\)",
                 mergeCompExp: "<strong>為何時間是 \\(\\mathcal{O}(n \\log n)\\)？</strong><br>陣列不斷對半切分，形成深度為 \\(\\log_2 n\\) 的樹狀結構。在這棵樹的每一層，<code>merge</code> 操作總共需要處理 \\(n\\) 個元素。因此：<code>深度</code> \\(\\times\\) <code>每層工作量</code> = \\(\\mathcal{O}(n \\log n)\\)。<br><br><strong>為何空間是 \\(\\mathcal{O}(n)\\)？</strong><br>標準合併排序<em>不是</em>原地排序。在 <code>merge</code> 過程中，必須建立額外的暫存陣列 (Temporary Arrays <code>L</code> 和 <code>R</code>) 來存放切分的兩半資料，消耗線性空間。",
                 mergePatExp: "<strong>極度穩定的效能：</strong><br>合併排序完全無視資料的初始分布。無論是隨機、反向或已排序，它都盲目地切分到底再合併。這確保了它在任何情況下都是 \\(\\mathcal{O}(n \\log n)\\)。<br><strong>缺點：</strong>它無法像插入排序那樣，利用「已部分排序」的特性來提早結束。",
-                mergeMisc: "迷思：「合併排序的時間複雜度是 \\(\\mathcal{O}(n \\log n)\\)，所以它在任何情況下都是最好的。」<br>事實：雖然時間效率高，但其 \\(\\mathcal{O}(n)\\) 的空間複雜度使其不適用於記憶體受限的系統（如嵌入式系統 Embedded Systems）。",
+                mergeMisc: "<strong>迷思：</strong>「合併排序的時間複雜度是 \\(\\mathcal{O}(n \\log n)\\)，所以它在任何情況下都是最好的。」<br><strong>事實：</strong>雖然時間效率高，但其 \\(\\mathcal{O}(n)\\) 的空間複雜度使其不適用於記憶體受限的系統（如嵌入式系統 Embedded Systems）。",
                 mergeLinkQ: "合併排序並不在乎陣列是否已經排序好，它總是需要花費 \\(\\mathcal{O}(n \\log n)\\) 的時間。為什麼？",
                 mergeLinkA: "標準的合併排序會盲目地將陣列切分到底，然後再合併。它缺乏像插入排序內層迴圈那樣的適應性機制 (Adaptive mechanism) 來偵測已排序的序列並提早結束。"
             }
         };
 
-        // --- Quizzes Data ---
+        // --- Quizzes Data with Bilingual Options ---
         const quizzes = {
             bubble: [
                 {
                     q_en: "What is the best-case time complexity of an optimized Bubble Sort?",
                     q_zh: "優化後的氣泡排序 (Bubble Sort) 最佳情況時間複雜度為何？",
-                    options: ["\\(\\mathcal{O}(1)\\)", "\\(\\mathcal{O}(n)\\)", "\\(\\mathcal{O}(n \\log n)\\)", "\\(\\mathcal{O}(n^2)\\)"],
+                    options_en: ["\\(\\mathcal{O}(1)\\)", "\\(\\mathcal{O}(n)\\)", "\\(\\mathcal{O}(n \\log n)\\)", "\\(\\mathcal{O}(n^2)\\)"],
+                    options_zh: ["\\(\\mathcal{O}(1)\\)", "\\(\\mathcal{O}(n)\\)", "\\(\\mathcal{O}(n \\log n)\\)", "\\(\\mathcal{O}(n^2)\\)"],
                     correct: 1,
                     exp_en: "If the array is already sorted, the algorithm breaks out after one pass \\(\\mathcal{O}(n)\\) without any swaps.",
                     exp_zh: "如果陣列已經排好，演算法在走訪一次 \\(\\mathcal{O}(n)\\) 且未發生交換後就會提早結束。"
@@ -439,7 +418,8 @@
                 {
                     q_en: "Which action requires more array accesses?",
                     q_zh: "哪種操作需要更多的陣列存取 (Array Accesses)？",
-                    options: ["Shifting an element by 1 position", "Swapping two elements", "Reading a variable", "They are the same"],
+                    options_en: ["Shifting an element by 1 position", "Swapping two elements", "Reading a variable", "They are the same"],
+                    options_zh: ["將元素平移 (Shift) 1 個位置", "交換 (Swap) 兩個元素", "讀取一個變數", "兩者相同"],
                     correct: 1,
                     exp_en: "Swapping requires 4 accesses (read 2, write 2). Shifting requires 2 accesses (read 1, write 1).",
                     exp_zh: "交換需要 4 次存取（讀2寫2），平移只需要 2 次存取（讀1寫1）。"
@@ -449,7 +429,8 @@
                 {
                     q_en: "Insertion Sort is highly efficient for which type of data pattern?",
                     q_zh: "插入排序 (Insertion Sort) 對於哪種資料分布效率極高？",
-                    options: ["Completely random data", "Reversely sorted data", "Nearly sorted data", "Data with many duplicates"],
+                    options_en: ["Completely random data", "Reversely sorted data", "Nearly sorted data", "Data with many duplicates"],
+                    options_zh: ["完全隨機的數據", "完全反向排序的數據", "幾乎排序完成的數據 (Nearly sorted)", "包含大量重複值的數據"],
                     correct: 2,
                     exp_en: "For nearly sorted data, the inner loop terminates immediately, resulting in \\(\\mathcal{O}(n)\\) complexity.",
                     exp_zh: "對於接近排序完成的資料，內層迴圈會立即終止，使複雜度接近 \\(\\mathcal{O}(n)\\)。"
@@ -457,7 +438,8 @@
                 {
                     q_en: "What is the space complexity of Insertion Sort?",
                     q_zh: "插入排序的空間複雜度 (Space Complexity) 為何？",
-                    options: ["\\(\\mathcal{O}(1)\\)", "\\(\\mathcal{O}(\\log n)\\)", "\\(\\mathcal{O}(n)\\)", "\\(\\mathcal{O}(n^2)\\)"],
+                    options_en: ["\\(\\mathcal{O}(1)\\)", "\\(\\mathcal{O}(\\log n)\\)", "\\(\\mathcal{O}(n)\\)", "\\(\\mathcal{O}(n^2)\\)"],
+                    options_zh: ["\\(\\mathcal{O}(1)\\)", "\\(\\mathcal{O}(\\log n)\\)", "\\(\\mathcal{O}(n)\\)", "\\(\\mathcal{O}(n^2)\\)"],
                     correct: 0,
                     exp_en: "It is an in-place sorting algorithm, requiring only a constant amount of extra memory for the 'key'.",
                     exp_zh: "它是原地排序演算法，只需要一個常數級別的額外記憶體來儲存 'key'。"
@@ -467,7 +449,8 @@
                 {
                     q_en: "Which algorithmic strategy does Merge Sort utilize?",
                     q_zh: "合併排序 (Merge Sort) 使用了哪種演算法策略？",
-                    options: ["Greedy Approach", "Dynamic Programming", "Divide and Conquer", "Backtracking"],
+                    options_en: ["Greedy Approach", "Dynamic Programming", "Divide and Conquer", "Backtracking"],
+                    options_zh: ["貪婪法 (Greedy Approach)", "動態規劃 (Dynamic Programming)", "分而治之 (Divide and Conquer)", "回溯法 (Backtracking)"],
                     correct: 2,
                     exp_en: "Merge Sort recursively divides the array into halves until single elements remain, then merges them.",
                     exp_zh: "合併排序 (Merge Sort) 使用「分而治之 (Divide and Conquer)」策略，遞迴地對半切分陣列再合併。"
@@ -475,7 +458,8 @@
                 {
                     q_en: "What is a major disadvantage of Merge Sort compared to Insertion Sort?",
                     q_zh: "與插入排序相比，合併排序的主要缺點是什麼？",
-                    options: ["It is slower on large datasets", "It requires O(n) extra memory space", "It has a worse time complexity", "It cannot sort strings"],
+                    options_en: ["It is slower on large datasets", "It requires O(n) extra memory space", "It has a worse time complexity", "It cannot sort strings"],
+                    options_zh: ["在大型數據集上速度較慢", "需要 O(n) 的額外記憶體空間 (Extra memory space)", "具有較差的時間複雜度", "無法對字串 (Strings) 進行排序"],
                     correct: 1,
                     exp_en: "Merge Sort requires temporary arrays to hold data during the merge process, taking \\(\\mathcal{O}(n)\\) space.",
                     exp_zh: "合併排序在合併過程中需要建立暫存陣列，消耗 \\(\\mathcal{O}(n)\\) 的空間。"
@@ -630,10 +614,12 @@ void mergeSort(int arr[], int l, int r) {
         const btnPlay = document.getElementById('btn-play');
         const stepDesc = document.getElementById('step-description');
         const progressBar = document.getElementById('progress-bar');
+        const metricCompDisplay = document.getElementById('metric-comp-display');
+        const metricAccessDisplay = document.getElementById('metric-access-display');
 
         // --- Initialization ---
         function init() {
-            setLang('en'); // Set English by default
+            setLang('en');
             generateNewArray();
         }
 
@@ -661,14 +647,14 @@ void mergeSort(int arr[], int l, int r) {
             } else {
                 stepDesc.innerHTML = content[lang].pressPlay;
             }
+            
+            // Re-render state to ensure counters translate correctly if needed
+            if (historySteps.length > 0) renderState(historySteps[currentStepIdx]);
         }
 
-        // Extremely safe MathJax trigger logic
         function triggerMathJax() {
             if (window.MathJax && window.MathJax.typesetPromise) {
-                // Clear state first to avoid overlapping or missing rendering bugs when DOM changes
                 MathJax.typesetClear();
-                // Typeset specifically the right column containing the pedagogical text
                 MathJax.typesetPromise([document.getElementById('info-panel-content')]).catch(function (err) {
                     console.error("MathJax Render Error:", err.message);
                 });
@@ -700,7 +686,6 @@ void mergeSort(int arr[], int l, int r) {
             showCode(currentCodeLang);
             renderQuiz();
             
-            // Trigger MathJax to re-render formulas after the innerHTML has been swapped
             setTimeout(triggerMathJax, 50); 
         }
 
@@ -725,32 +710,33 @@ void mergeSort(int arr[], int l, int r) {
             qList.forEach((q, index) => {
                 const questionText = currentLang === 'en' ? q.q_en : q.q_zh;
                 const savedAns = sessionStorage.getItem(`quiz_${currentAlgo}_${index}`);
+                const optionsArray = currentLang === 'en' ? q.options_en : q.options_zh;
                 
-                let html = `<div class="mb-5 last:mb-0"><p class="text-sm font-semibold text-slate-800 mb-3">${index + 1}. ${questionText}</p><div class="flex flex-col gap-2">`;
+                let html = `<div class="mb-5 last:mb-0"><p class="text-sm font-bold text-slate-800 mb-3">${index + 1}. ${questionText}</p><div class="flex flex-col gap-2">`;
                 
-                q.options.forEach((opt, optIndex) => {
+                optionsArray.forEach((opt, optIndex) => {
                     const isChecked = savedAns == optIndex ? 'checked' : '';
                     let statusClass = '';
                     let iconHtml = '';
                     
                     if (savedAns != null) {
                         if (optIndex === q.correct) {
-                            statusClass = 'border-emerald-500 bg-emerald-50 text-emerald-800';
-                            iconHtml = `<i class="fa-solid fa-check text-emerald-500 ml-auto"></i>`;
+                            statusClass = 'border-emerald-400 bg-emerald-50 text-emerald-900 shadow-sm';
+                            iconHtml = `<i class="fa-solid fa-check text-emerald-500 ml-auto text-lg"></i>`;
                         } else if (savedAns == optIndex && optIndex !== q.correct) {
-                            statusClass = 'border-red-400 bg-red-50 text-red-800';
-                            iconHtml = `<i class="fa-solid fa-xmark text-red-500 ml-auto"></i>`;
+                            statusClass = 'border-rose-300 bg-rose-50 text-rose-900 shadow-sm';
+                            iconHtml = `<i class="fa-solid fa-xmark text-rose-500 ml-auto text-lg"></i>`;
                         } else {
                             statusClass = 'border-slate-200 bg-slate-50 opacity-50';
                         }
                     } else {
-                        statusClass = 'border-slate-200 hover:border-blue-300 hover:bg-slate-50 cursor-pointer transition-colors';
+                        statusClass = 'border-slate-200 hover:border-blue-400 hover:bg-slate-50 cursor-pointer transition-colors';
                     }
 
                     html += `
-                        <label class="relative flex items-center p-3 border rounded-lg ${statusClass}">
+                        <label class="relative flex items-center p-3 border rounded-xl ${statusClass}">
                             <input type="radio" name="q_${currentAlgo}_${index}" value="${optIndex}" class="quiz-radio sr-only" onchange="checkQuiz(${index}, ${optIndex})" ${isChecked} ${savedAns != null ? 'disabled' : ''}>
-                            <span class="text-sm flex-grow">${opt}</span>
+                            <span class="text-sm font-medium flex-grow">${opt}</span>
                             ${iconHtml}
                         </label>
                     `;
@@ -761,10 +747,10 @@ void mergeSort(int arr[], int l, int r) {
                 if (savedAns != null) {
                     const expText = currentLang === 'en' ? q.exp_en : q.exp_zh;
                     const resultText = savedAns == q.correct ? content[currentLang].quizCorrect : content[currentLang].quizWrong;
-                    const resultColor = savedAns == q.correct ? 'text-emerald-600' : 'text-red-500';
+                    const resultColor = savedAns == q.correct ? 'text-emerald-600' : 'text-rose-600';
                     
-                    html += `<div class="mt-3 p-3 bg-slate-100 rounded-lg text-sm">
-                        <span class="font-bold ${resultColor}">${resultText}</span> <span class="text-slate-700">${expText}</span>
+                    html += `<div class="mt-4 p-4 bg-slate-100 rounded-xl border border-slate-200 text-sm">
+                        <span class="font-bold ${resultColor} block mb-1">${resultText}</span> <span class="text-slate-700 leading-relaxed">${expText}</span>
                     </div>`;
                 }
                 
@@ -776,7 +762,7 @@ void mergeSort(int arr[], int l, int r) {
         function checkQuiz(qIndex, selectedOpt) {
             sessionStorage.setItem(`quiz_${currentAlgo}_${qIndex}`, selectedOpt);
             renderQuiz();
-            setTimeout(triggerMathJax, 50); // Re-render math in explanations
+            setTimeout(triggerMathJax, 50);
         }
 
         // --- Code Highlighting ---
@@ -805,11 +791,11 @@ void mergeSort(int arr[], int l, int r) {
             const btnCpp = document.getElementById('tab-cpp');
             
             if (lang === 'python') {
-                btnPy.className = "flex-1 py-2 text-xs font-bold uppercase tracking-wider text-blue-400 border-b-2 border-blue-400 bg-[#1e293b] transition-colors";
-                btnCpp.className = "flex-1 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors";
+                btnPy.className = "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md text-blue-600 bg-white shadow-sm transition-all";
+                btnCpp.className = "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md text-slate-500 hover:text-slate-800 transition-all";
             } else {
-                btnCpp.className = "flex-1 py-2 text-xs font-bold uppercase tracking-wider text-blue-400 border-b-2 border-blue-400 bg-[#1e293b] transition-colors";
-                btnPy.className = "flex-1 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors";
+                btnCpp.className = "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md text-blue-600 bg-white shadow-sm transition-all";
+                btnPy.className = "px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-md text-slate-500 hover:text-slate-800 transition-all";
             }
             
             const rawCode = codeSnippets[currentAlgo][lang];
@@ -905,7 +891,7 @@ void mergeSort(int arr[], int l, int r) {
                 let swapped = false;
                 for (let j = 0; j < n - i - 1; j++) {
                     metrics.comp++;
-                    metrics.access += 2; // Read arr[j], arr[j+1]
+                    metrics.access += 2; 
                     pushState(arr, [j, j+1], sorted, metrics, {
                         en: `(Inner Loop) Comparing <span class="font-mono bg-blue-100 px-1 rounded">${arr[j]}</span> and <span class="font-mono bg-blue-100 px-1 rounded">${arr[j+1]}</span>`,
                         zh: `(內層迴圈) 比較 <span class="font-mono bg-blue-100 px-1 rounded">${arr[j]}</span> 與 <span class="font-mono bg-blue-100 px-1 rounded">${arr[j+1]}</span>`
@@ -915,7 +901,7 @@ void mergeSort(int arr[], int l, int r) {
                         let temp = arr[j];
                         arr[j] = arr[j+1];
                         arr[j+1] = temp;
-                        metrics.access += 4; // Swap is 4 accesses
+                        metrics.access += 4; 
                         swapped = true;
                         pushState(arr, [j, j+1], sorted, metrics, {
                             en: `<span class="text-pink-600 font-bold">Swapped</span> elements since ${arr[j+1]} < ${arr[j]}. <br><span class="text-xs text-slate-500">(+4 Array Accesses)</span>`,
@@ -949,7 +935,7 @@ void mergeSort(int arr[], int l, int r) {
 
             for (let i = 1; i < arr.length; i++) {
                 let key = arr[i];
-                metrics.access++; // Read key
+                metrics.access++; 
                 let j = i - 1;
                 
                 pushState(arr, [i], sorted, metrics, {
@@ -960,7 +946,7 @@ void mergeSort(int arr[], int l, int r) {
                 let shifted = false;
                 while (j >= 0) {
                     metrics.comp++;
-                    metrics.access++; // Read arr[j] for comparison
+                    metrics.access++; 
                     pushState(arr, [j, j+1], sorted, metrics, {
                         en: `Comparing sorted element <span class="font-mono bg-blue-100 px-1 rounded">${arr[j]}</span> with Key <span class="font-bold text-indigo-600">${key}</span>.`,
                         zh: `比較已排序元素 <span class="font-mono bg-blue-100 px-1 rounded">${arr[j]}</span> 與 Key <span class="font-bold text-indigo-600">${key}</span>。`
@@ -968,7 +954,7 @@ void mergeSort(int arr[], int l, int r) {
                     
                     if (arr[j] > key) {
                         arr[j + 1] = arr[j];
-                        metrics.access += 2; // Read arr[j], write to arr[j+1]
+                        metrics.access += 2; 
                         shifted = true;
                         pushState(arr, [j, j+1], sorted, metrics, {
                             en: `<span class="text-pink-600 font-bold">Shifted</span> ${arr[j]} to the right. <br><span class="text-xs text-slate-500">(+2 Array Accesses, no full swap!)</span>`,
@@ -980,7 +966,7 @@ void mergeSort(int arr[], int l, int r) {
                     }
                 }
                 arr[j + 1] = key;
-                metrics.access++; // Write key
+                metrics.access++; 
                 sorted.push(i);
                 
                 let actionTextEN = shifted ? "Inserted" : "No shift needed for";
@@ -1097,8 +1083,27 @@ void mergeSort(int arr[], int l, int r) {
                 container.appendChild(bar);
             });
 
-            document.getElementById('metric-comp').textContent = state.metrics.comp;
-            document.getElementById('metric-access').textContent = state.metrics.access;
+            // Update Metrics with Animation/Difference Logic
+            let prevMetrics = currentStepIdx > 0 ? historySteps[currentStepIdx - 1].metrics : { comp: 0, access: 0 };
+            
+            let compDiff = state.metrics.comp - prevMetrics.comp;
+            if(compDiff > 0) {
+                metricCompDisplay.innerHTML = `<span class="text-slate-400 font-normal text-sm">${prevMetrics.comp}</span> <span class="text-xs text-blue-500 mx-0.5 bg-blue-100 rounded px-1">+${compDiff}</span> <span class="text-slate-400 text-sm">&rarr;</span> ${state.metrics.comp}`;
+                metricCompDisplay.classList.add('metric-transition');
+                setTimeout(() => metricCompDisplay.classList.remove('metric-transition'), 300);
+            } else {
+                metricCompDisplay.innerHTML = state.metrics.comp;
+            }
+
+            let accessDiff = state.metrics.access - prevMetrics.access;
+            if(accessDiff > 0) {
+                metricAccessDisplay.innerHTML = `<span class="text-slate-400 font-normal text-sm">${prevMetrics.access}</span> <span class="text-xs text-emerald-500 mx-0.5 bg-emerald-100 rounded px-1">+${accessDiff}</span> <span class="text-slate-400 text-sm">&rarr;</span> ${state.metrics.access}`;
+                metricAccessDisplay.classList.add('metric-transition');
+                setTimeout(() => metricAccessDisplay.classList.remove('metric-transition'), 300);
+            } else {
+                metricAccessDisplay.innerHTML = state.metrics.access;
+            }
+
             stepDesc.innerHTML = state.desc[currentLang] || state.desc['en'];
             
             const progress = (currentStepIdx / Math.max(1, historySteps.length - 1)) * 100;
