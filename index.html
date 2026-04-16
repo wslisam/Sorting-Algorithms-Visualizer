@@ -3,221 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sorting Algorithms Visualizer</title>
+    <title>Sorting Algorithms Visualizer - HKDSE ICT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MathJax Configuration and Script -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            startup: { typeset: false } // Trigger typesetting manually to prevent rendering bugs
+        };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; }
-        .bar { transition: height 0.1s ease, background-color 0.1s ease; }
-        .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; overflow-y: hidden; /* Prevent body scroll, let columns scroll */ }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .bar { transition: height 0.15s ease, background-color 0.15s ease; }
+        .glass-panel { background: rgba(255, 255, 255, 0.97); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); }
         pre { white-space: pre-wrap; word-wrap: break-word; }
         .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+        
+        /* Code Highlighting Custom Colors */
+        .token-kw { color: #f472b6; font-weight: 600; } /* Pink/Magenta */
+        .token-type { color: #38bdf8; font-weight: 600; } /* Light Blue */
+        .token-comment { color: #94a3b8; font-style: italic; } /* Slate */
+        .token-num { color: #a78bfa; } /* Purple */
+        .token-func { color: #fcd34d; font-weight: 600;} /* Yellow */
+        
+        /* Quiz Radio Custom */
+        .quiz-radio:checked + div { border-color: #3b82f6; background-color: #eff6ff; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col">
 
     <!-- Header -->
-    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
+    <header class="bg-white shadow-sm border-b border-slate-200 flex-shrink-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <i class="fa-solid fa-chart-bar text-blue-600 text-2xl"></i>
+                <i class="fa-solid fa-layer-group text-blue-600 text-2xl"></i>
                 <h1 class="font-bold text-xl text-slate-900" data-i18n="title">Sorting Visualizer</h1>
             </div>
             <div class="flex items-center gap-4">
                 <span class="text-sm text-slate-400 hidden sm:inline-block font-medium">Created by Sam Li</span>
-                <div class="flex bg-slate-100 p-1 rounded-lg tooltip-container relative">
-                    <button onclick="setLang('en')" id="btn-en" class="px-3 py-1 text-sm font-medium rounded-md bg-white shadow-sm text-blue-600">EN</button>
-                    <button onclick="setLang('zh')" id="btn-zh" class="px-3 py-1 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900">繁中</button>
-                    <div class="tooltip-text invisible opacity-0 transition-opacity absolute top-full right-0 mt-2 w-32 bg-slate-800 text-white text-xs rounded p-2 shadow-lg z-50 text-center" data-i18n="ttLang">Change Language</div>
+                <div class="flex bg-slate-100 p-1 rounded-lg">
+                    <button onclick="setLang('en')" id="btn-en" class="px-3 py-1 text-sm font-medium rounded-md bg-white shadow-sm text-blue-600 transition-colors">EN</button>
+                    <button onclick="setLang('zh')" id="btn-zh" class="px-3 py-1 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900 transition-colors">繁中</button>
                 </div>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex flex-col lg:flex-row gap-6">
+    <main class="flex-grow max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 w-full flex flex-col lg:flex-row gap-6 overflow-hidden">
         
-        <!-- Left Column: Visualizer & Controls -->
-        <div class="w-full lg:w-3/5 flex flex-col gap-4">
+        <!-- Left Column: Visualizer & Controls (Scrollable independently on mobile) -->
+        <div class="w-full lg:w-2/5 flex flex-col gap-4 overflow-y-auto lg:overflow-visible pr-1 h-full">
             
             <!-- Visualizer Screen -->
-            <div class="glass-panel rounded-2xl shadow-sm p-4 flex flex-col relative bg-white">
-                <div class="flex flex-wrap gap-4 mb-4 z-10">
-                    <div class="tooltip-container relative bg-blue-50 px-3 py-1.5 rounded shadow-sm border border-blue-100 cursor-help">
-                        <span class="text-sm font-medium text-slate-600"><span data-i18n="comparisons">Comparisons</span>:</span> 
-                        <span id="metric-comp" class="text-blue-600 font-bold text-lg ml-1">0</span>
-                        <div class="tooltip-text invisible opacity-0 transition-opacity absolute top-full left-0 mt-2 w-64 bg-slate-800 text-white text-xs rounded p-2 shadow-lg z-50 pointer-events-none" data-i18n="compTooltip">
-                            Counts how many times two elements are compared.
+            <div class="glass-panel rounded-2xl shadow-sm p-4 flex flex-col relative bg-white flex-shrink-0">
+                <div class="flex flex-wrap items-center justify-between mb-4 z-10 gap-2">
+                    <div class="flex gap-2">
+                        <div class="tooltip-container relative bg-blue-50 px-3 py-1.5 rounded-lg shadow-sm border border-blue-100 cursor-help">
+                            <span class="text-xs font-semibold text-slate-600 uppercase tracking-wide"><span data-i18n="comparisons">Comparisons</span>:</span> 
+                            <span id="metric-comp" class="text-blue-700 font-bold text-lg ml-1">0</span>
                         </div>
-                    </div>
-                    <div class="tooltip-container relative bg-emerald-50 px-3 py-1.5 rounded shadow-sm border border-emerald-100 cursor-help">
-                        <span class="text-sm font-medium text-slate-600"><span data-i18n="arrayAccess">Array Accesses</span>:</span> 
-                        <span id="metric-access" class="text-emerald-600 font-bold text-lg ml-1">0</span>
-                        <div class="tooltip-text invisible opacity-0 transition-opacity absolute top-full left-0 mt-2 w-72 bg-slate-800 text-white text-xs rounded p-2 shadow-lg z-50 pointer-events-none" data-i18n="accessTooltip">
-                            Counts reads/writes to the array. Reading 1 value = +1. Swapping two numbers = +4 (Read A, Read B, Write B to A's spot, Write A to B's spot).
+                        <div class="tooltip-container relative bg-emerald-50 px-3 py-1.5 rounded-lg shadow-sm border border-emerald-100 cursor-help">
+                            <span class="text-xs font-semibold text-slate-600 uppercase tracking-wide"><span data-i18n="arrayAccess">Array Accesses</span>:</span> 
+                            <span id="metric-access" class="text-emerald-700 font-bold text-lg ml-1">0</span>
                         </div>
                     </div>
                     <!-- Color Legend -->
-                    <div class="ml-auto flex flex-wrap gap-3 text-[10px] font-medium text-slate-500 items-center">
-                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-blue-400 rounded-sm"></div> <span data-i18n="legUnsorted">Unsorted</span></div>
-                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-amber-400 rounded-sm"></div> <span data-i18n="legActive">Active</span></div>
-                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-emerald-500 rounded-sm"></div> <span data-i18n="legSorted">Sorted</span></div>
+                    <div class="flex gap-3 text-xs font-medium text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                        <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 bg-blue-400 rounded-full"></div> <span data-i18n="legUnsorted">Unsorted</span></div>
+                        <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 bg-amber-400 rounded-full shadow-[0_0_5px_rgba(251,191,36,0.8)]"></div> <span data-i18n="legActive">Active</span></div>
+                        <div class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 bg-emerald-500 rounded-full"></div> <span data-i18n="legSorted">Sorted</span></div>
                     </div>
                 </div>
                 
                 <!-- Bars Container -->
-                <div id="bars-container" class="h-64 sm:h-80 flex items-end justify-center gap-1 pb-2 border-b border-slate-100">
+                <div id="bars-container" class="h-48 sm:h-64 md:h-80 flex items-end justify-center gap-[2px] sm:gap-1 pb-1 border-b-2 border-slate-100">
                     <!-- Bars injected by JS -->
                 </div>
 
                 <!-- Progress Bar -->
-                <div class="w-full bg-slate-200 rounded-full h-1.5 mt-4">
-                    <div id="progress-bar" class="bg-blue-600 h-1.5 rounded-full" style="width: 0%"></div>
+                <div class="w-full bg-slate-100 rounded-full h-1.5 mt-4 overflow-hidden">
+                    <div id="progress-bar" class="bg-blue-500 h-1.5 rounded-full transition-all duration-200" style="width: 0%"></div>
                 </div>
             </div>
 
             <!-- Controls -->
-            <div class="glass-panel rounded-2xl shadow-sm p-5 bg-white flex flex-col gap-4">
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                    <!-- Algorithm Selector -->
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="selectAlgo('bubble')" id="algo-bubble" class="algo-btn px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white shadow-sm transition-colors" data-i18n="bubbleSort">Bubble Sort</button>
-                        <button onclick="selectAlgo('insertion')" id="algo-insertion" class="algo-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors" data-i18n="insertionSort">Insertion Sort</button>
-                        <button onclick="selectAlgo('merge')" id="algo-merge" class="algo-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors" data-i18n="mergeSort">Merge Sort</button>
+            <div class="glass-panel rounded-2xl shadow-sm p-4 sm:p-5 bg-white flex flex-col gap-5 flex-shrink-0">
+                <div class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
+                    <!-- Algorithm Selector (Fixed Wrapping Issue) -->
+                    <div class="flex flex-wrap gap-2 w-full xl:w-auto">
+                        <button onclick="selectAlgo('bubble')" id="algo-bubble" class="algo-btn flex-grow xl:flex-none px-3 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-md shadow-blue-200 transition-all" data-i18n="bubbleSort">Bubble Sort</button>
+                        <button onclick="selectAlgo('insertion')" id="algo-insertion" class="algo-btn flex-grow xl:flex-none px-3 py-2 rounded-xl text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all whitespace-nowrap" data-i18n="insertionSort">Insertion Sort</button>
+                        <button onclick="selectAlgo('merge')" id="algo-merge" class="algo-btn flex-grow xl:flex-none px-3 py-2 rounded-xl text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all whitespace-nowrap" data-i18n="mergeSort">Merge Sort</button>
                     </div>
                     
                     <!-- Playback Controls -->
-                    <div class="flex gap-2">
-                        <div class="tooltip-container relative">
-                            <button onclick="generateNewArray()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center justify-center transition-colors"><i class="fa-solid fa-dice"></i></button>
-                            <div class="tooltip-text invisible opacity-0 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-slate-800 text-white text-xs rounded p-1" data-i18n="ttNew">New Random Data</div>
-                        </div>
-                        <div class="tooltip-container relative">
-                            <button onclick="resetToOriginal()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center justify-center transition-colors"><i class="fa-solid fa-rotate-left"></i></button>
-                            <div class="tooltip-text invisible opacity-0 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-slate-800 text-white text-xs rounded p-1" data-i18n="ttRestart">Restart Same Data</div>
-                        </div>
-                        <div class="tooltip-container relative">
-                            <button onclick="stepBackward()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center justify-center transition-colors"><i class="fa-solid fa-step-backward"></i></button>
-                            <div class="tooltip-text invisible opacity-0 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-slate-800 text-white text-xs rounded p-1" data-i18n="ttPrev">Previous Step</div>
-                        </div>
-                        <div class="tooltip-container relative">
-                            <button onclick="togglePlay()" id="btn-play" class="w-12 h-12 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 flex items-center justify-center text-lg shadow-md transition-transform active:scale-95"><i class="fa-solid fa-play"></i></button>
-                            <div class="tooltip-text invisible opacity-0 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-slate-800 text-white text-xs rounded p-1" data-i18n="ttPlay">Play / Pause</div>
-                        </div>
-                        <div class="tooltip-container relative">
-                            <button onclick="stepForward()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center justify-center transition-colors"><i class="fa-solid fa-step-forward"></i></button>
-                            <div class="tooltip-text invisible opacity-0 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-slate-800 text-white text-xs rounded p-1" data-i18n="ttNext">Next Step</div>
-                        </div>
+                    <div class="flex items-center justify-center gap-2 w-full xl:w-auto mt-2 xl:mt-0">
+                        <button onclick="generateNewArray()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors flex-shrink-0" title="New Random Array"><i class="fa-solid fa-dice"></i></button>
+                        <button onclick="resetToOriginal()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors flex-shrink-0" title="Reset Current Array"><i class="fa-solid fa-rotate-left"></i></button>
+                        <div class="w-px h-6 bg-slate-300 mx-1"></div>
+                        <button onclick="stepBackward()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors flex-shrink-0" title="Previous Step"><i class="fa-solid fa-step-backward"></i></button>
+                        <button onclick="togglePlay()" id="btn-play" class="w-12 h-12 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 flex items-center justify-center text-lg shadow-lg shadow-emerald-200 transition-transform active:scale-95 flex-shrink-0"><i class="fa-solid fa-play ml-0.5"></i></button>
+                        <button onclick="stepForward()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors flex-shrink-0" title="Next Step"><i class="fa-solid fa-step-forward"></i></button>
                     </div>
                 </div>
 
                 <!-- Options -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-slate-100">
-                    <div class="flex flex-col gap-2 tooltip-container relative">
-                        <label class="text-sm font-medium text-slate-600" data-i18n="arrayPattern">Data Pattern</label>
-                        <select id="pattern-select" onchange="changePattern(this.value)" class="w-full text-sm border border-slate-200 rounded-md p-2 bg-slate-50 outline-none focus:border-blue-400">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide" data-i18n="arrayPattern">Data Pattern</label>
+                        <select id="pattern-select" onchange="changePattern(this.value)" class="w-full text-sm border-0 bg-slate-100 rounded-lg p-2.5 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer">
                             <option value="random" data-i18n="patRandom">Random</option>
-                            <option value="reversed" data-i18n="patReversed">Reversed (Worst Case)</option>
-                            <option value="nearly" data-i18n="patNearly">Nearly Sorted (Best Case)</option>
+                            <option value="reversed" data-i18n="patReversed">Reversed</option>
+                            <option value="nearly" data-i18n="patNearly">Nearly Sorted</option>
                         </select>
-                        <div class="tooltip-text invisible opacity-0 absolute bottom-full left-0 mb-2 w-48 bg-slate-800 text-white text-xs rounded p-2 z-50" data-i18n="ttPattern">Changes the initial order of the data to see how algorithms perform differently.</div>
                     </div>
-                    <div class="flex flex-col gap-2">
-                        <label class="text-sm font-medium text-slate-600" data-i18n="arraySize">Array Size</label>
-                        <select id="size-select" onchange="updateSize(this.value)" class="w-full text-sm border border-slate-200 rounded-md p-2 bg-slate-50 outline-none focus:border-blue-400">
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide" data-i18n="arraySize">Array Size</label>
+                        <select id="size-select" onchange="updateSize(this.value)" class="w-full text-sm border-0 bg-slate-100 rounded-lg p-2.5 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer">
                             <option value="10" data-i18n="sizeSmall">10 (Small)</option>
                             <option value="20" selected data-i18n="sizeMed">20 (Medium)</option>
                             <option value="40" data-i18n="sizeLarge">40 (Large)</option>
                         </select>
                     </div>
-                    <div class="flex flex-col gap-2">
-                        <label class="text-sm font-medium text-slate-600" data-i18n="speed">Animation Speed</label>
-                        <div class="flex bg-slate-100 p-1 rounded-md h-[38px]">
-                            <button onclick="updateSpeed(250, this)" class="speed-btn flex-1 text-xs font-medium rounded text-slate-600 hover:text-slate-900" data-i18n="spdSlow">Slow</button>
-                            <button onclick="updateSpeed(50, this)" class="speed-btn flex-1 text-xs font-medium rounded bg-white shadow-sm text-blue-600" data-i18n="spdNormal">Normal</button>
-                            <button onclick="updateSpeed(10, this)" class="speed-btn flex-1 text-xs font-medium rounded text-slate-600 hover:text-slate-900" data-i18n="spdFast">Fast</button>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wide" data-i18n="speed">Animation Speed</label>
+                        <div class="flex bg-slate-100 p-1 rounded-lg h-[40px]">
+                            <button onclick="updateSpeed(300, this)" class="speed-btn flex-1 text-xs font-semibold rounded-md text-slate-500 hover:text-slate-800 transition-colors" data-i18n="spdSlow">Slow</button>
+                            <button onclick="updateSpeed(60, this)" class="speed-btn flex-1 text-xs font-bold rounded-md bg-white shadow-sm text-blue-600 transition-colors" data-i18n="spdNormal">Normal</button>
+                            <button onclick="updateSpeed(10, this)" class="speed-btn flex-1 text-xs font-semibold rounded-md text-slate-500 hover:text-slate-800 transition-colors" data-i18n="spdFast">Fast</button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Current Step Explanation -->
-            <div class="glass-panel rounded-2xl shadow-sm p-5 bg-blue-50 border border-blue-100">
-                <h3 class="text-sm font-bold text-blue-800 mb-1 flex items-center gap-2">
+            <div class="glass-panel rounded-2xl shadow-sm p-4 sm:p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 flex-shrink-0 mb-4 lg:mb-0">
+                <h3 class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2 flex items-center gap-2">
                     <i class="fa-solid fa-chalkboard-user"></i> <span data-i18n="currentStep">Live Explanation</span>
                 </h3>
-                <p id="step-description" class="text-slate-700 text-sm leading-relaxed font-medium" data-i18n="pressPlay">Press Play or Step Forward to start the visualization.</p>
+                <p id="step-description" class="text-slate-700 text-sm sm:text-base leading-relaxed font-medium min-h-[3rem]" data-i18n="pressPlay">Press Play or Step Forward to start the visualization.</p>
             </div>
         </div>
 
-        <!-- Right Column: Educational Content -->
-        <div class="w-full lg:w-2/5 flex flex-col gap-4">
-            <div class="glass-panel rounded-2xl shadow-sm bg-white overflow-hidden flex flex-col h-full">
-                <div class="bg-slate-800 text-white p-5">
-                    <h2 id="info-title" class="text-2xl font-bold">Bubble Sort</h2>
-                    <div class="flex flex-col gap-2 mt-3 text-sm font-medium text-slate-200">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-regular fa-clock w-4"></i>
-                            <span class="text-slate-400">Time:</span> 
-                            <span id="info-time" class="bg-slate-700 px-2 py-0.5 rounded text-white font-mono">O(n²)</span>
+        <!-- Right Column: Educational Content (Scrollable internally) -->
+        <div class="w-full lg:w-3/5 flex flex-col h-full glass-panel rounded-2xl shadow-sm bg-white border-slate-200 overflow-hidden" id="info-panel-content">
+            
+            <!-- Top Section: Header & Implementation Code (Sticky at top of right column) -->
+            <div class="flex-shrink-0 shadow-sm z-20">
+                <!-- Pedagogical Header -->
+                <div class="bg-[#1e293b] text-white p-4 sm:p-5 border-b-[4px] border-blue-500">
+                    <div class="flex justify-between items-end mb-3">
+                        <div>
+                            <div class="text-blue-400 text-[10px] font-bold tracking-widest uppercase mb-1" data-i18n="algoTheory">Algorithm Theory</div>
+                            <h2 id="info-title" class="text-xl sm:text-2xl font-bold">Bubble Sort</h2>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-memory w-4"></i>
-                            <span class="text-slate-400">Space:</span> 
-                            <span id="info-space" class="bg-slate-700 px-2 py-0.5 rounded text-white font-mono">O(1)</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-[#0f172a] rounded-lg p-2 sm:p-3 border border-slate-700">
+                            <div class="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1" data-i18n="timeComp">Time Complexity</div>
+                            <div id="info-time" class="text-base sm:text-lg font-bold text-emerald-400">\(\mathcal{O}(n^2)\)</div>
+                        </div>
+                        <div class="bg-[#0f172a] rounded-lg p-2 sm:p-3 border border-slate-700">
+                            <div class="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1" data-i18n="spaceComp">Space Complexity</div>
+                            <div id="info-space" class="text-base sm:text-lg font-bold text-amber-400">\(\mathcal{O}(1)\)</div>
                         </div>
                     </div>
                 </div>
-                <div class="p-5 overflow-y-auto flex-grow text-sm text-slate-700 space-y-5">
-                    
-                    <!-- Concept -->
-                    <div>
-                        <h3 class="font-bold text-slate-900 mb-1 border-b pb-1 text-lg" data-i18n="howItWorks">Concept</h3>
-                        <p id="info-desc" class="leading-relaxed mt-2"></p>
-                    </div>
 
-                    <!-- Complexity Explanation -->
-                    <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-4">
-                        <h3 class="font-bold text-indigo-900 mb-2 flex items-center gap-2 text-lg"><i class="fa-solid fa-chart-line"></i> <span data-i18n="complexityExp">Complexity Explained</span></h3>
-                        <p id="info-complexity-desc" class="text-indigo-800 leading-relaxed whitespace-pre-line"></p>
-                    </div>
+          
+            </div>
 
-                    <!-- Data Pattern Impact -->
-                    <div class="bg-amber-50 border border-amber-100 rounded-lg p-4">
-                        <h3 class="font-bold text-amber-900 mb-2 flex items-center gap-2"><i class="fa-solid fa-shapes"></i> <span data-i18n="patternImpact">Why Data Patterns Matter</span></h3>
-                        <p id="info-pattern-desc" class="text-amber-800 leading-relaxed whitespace-pre-line"></p>
+            <!-- Scrollable Pedagogical Content -->
+            <div class="p-4 sm:p-5 overflow-y-auto flex-grow text-sm text-slate-700 space-y-6 pb-24">
+                
+                <!-- 1. Learning Objectives -->
+                <section>
+                    <h3 class="font-bold text-slate-900 mb-2 flex items-center gap-2 text-base">
+                        <i class="fa-solid fa-bullseye text-red-500"></i> <span data-i18n="objTitle">Learning Objectives</span>
+                    </h3>
+                    <p class="leading-relaxed bg-red-50/50 p-3 rounded-lg border border-red-100" data-i18n="objDesc">
+                        Understand the mechanics of standard sorting algorithms, analyze their time and space complexities, and evaluate their suitability for different datasets.
+                    </p>
+                </section>
+
+                <!-- 2. Concept -->
+                <section>
+                    <h3 class="font-bold text-slate-900 mb-2 flex items-center gap-2 text-base">
+                        <i class="fa-solid fa-book-open text-blue-500"></i> <span data-i18n="howItWorks">Concept</span>
+                    </h3>
+                    <p id="info-desc" class="leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100"></p>
+                </section>
+
+                <!-- 3. Complexity Explained -->
+                <section class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4">
+                    <h3 class="font-bold text-indigo-900 mb-2 flex items-center gap-2 text-base">
+                        <i class="fa-solid fa-magnifying-glass-chart text-indigo-500"></i> <span data-i18n="complexityExp">Deduction of Complexity</span>
+                    </h3>
+                    <div id="info-complexity-desc" class="text-indigo-800 leading-relaxed space-y-2"></div>
+                </section>
+
+                <!-- 4. Pattern Impact -->
+                <section class="bg-amber-50/50 border border-amber-100 rounded-xl p-4">
+                    <h3 class="font-bold text-amber-900 mb-2 flex items-center gap-2 text-base">
+                        <i class="fa-solid fa-shapes text-amber-500"></i> <span data-i18n="patternImpact">Data Pattern Impact</span>
+                    </h3>
+                    <div id="info-pattern-desc" class="text-amber-800 leading-relaxed space-y-2"></div>
+                </section>
+                
+                <!-- 5. Misconceptions -->
+                <section class="bg-rose-50/50 border border-rose-100 rounded-xl p-4 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 opacity-10 text-rose-500 text-6xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <h3 class="font-bold text-rose-800 mb-2 flex items-center gap-2 text-base relative z-10">
+                        <i class="fa-solid fa-lightbulb text-rose-500"></i> <span data-i18n="miscTitle">Misconception Alert</span>
+                    </h3>
+                    <p id="info-misc" class="text-rose-700 leading-relaxed relative z-10 font-medium"></p>
+                </section>
+
+                <!-- 6. Think & Link -->
+                <section>
+                    <h3 class="font-bold text-slate-900 mb-2 flex items-center gap-2 text-base">
+                        <i class="fa-solid fa-link text-purple-500"></i> <span data-i18n="linkTitle">Think & Link</span>
+                    </h3>
+                    <div class="bg-purple-50/50 rounded-xl border border-purple-100 overflow-hidden">
+                        <button onclick="toggleAnswer()" class="w-full text-left p-3.5 flex justify-between items-center hover:bg-purple-100/50 transition-colors">
+                            <span id="info-link-q" class="font-semibold text-purple-900 pr-4"></span>
+                            <i id="link-chevron" class="fa-solid fa-chevron-down text-purple-400 transition-transform"></i>
+                        </button>
+                        <div id="info-link-a" class="hidden p-3.5 pt-0 text-purple-800 leading-relaxed border-t border-purple-100/50 mt-1"></div>
                     </div>
-                    
-                    <!-- Code Snippets -->
-                    <div>
-                        <h3 class="font-bold text-slate-900 mb-2 border-b pb-1" data-i18n="codeImpl">Implementation</h3>
-                        <div class="bg-slate-900 rounded-lg p-3 overflow-x-auto">
-                            <div class="flex gap-4 mb-2 border-b border-slate-700 pb-2">
-                                <button onclick="showCode('python')" id="tab-python" class="text-blue-400 font-bold text-xs uppercase tracking-wider">Python</button>
-                                <button onclick="showCode('cpp')" id="tab-cpp" class="text-slate-500 hover:text-slate-300 font-bold text-xs uppercase tracking-wider">C++</button>
-                            </div>
-                            <pre id="code-block" class="text-green-400 font-mono text-xs leading-relaxed"></pre>
+                </section>
+                
+                      <!-- Code Implementation (Moved Up) -->
+                <div class="bg-[#1e293b]">
+                    <div class="flex bg-[#0f172a]">
+                        <div class="px-4 py-2 flex items-center gap-2 border-r border-slate-700 bg-[#1e293b]">
+                            <i class="fa-solid fa-code text-slate-400 text-xs"></i>
+                            <span class="text-xs font-bold text-slate-300 tracking-wide uppercase" data-i18n="codeImplTitle">Code</span>
                         </div>
+                        <button onclick="showCode('python')" id="tab-python" class="flex-1 py-2 text-xs font-bold uppercase border-blue-400 bg-[#1e293b] transition-colors">Python</button>
+                        <button onclick="showCode('cpp')" id="tab-cpp" class="flex-1 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors">C++</button>
                     </div>
-
+                    <div class="p-3 sm:p-4 overflow-x-auto max-h-[30vh] sm:max-h-[35vh]">
+                        <pre><code id="code-block" class="text-slate-300 font-mono text-xs sm:text-[13px] leading-relaxed"></code></pre>
+                    </div>
                 </div>
+                
+                <!-- 7. Self-Assessment (Quiz) -->
+                <section>
+                    <h3 class="font-bold text-slate-900 mb-3 flex items-center gap-2 text-base">
+                        <i class="fa-solid fa-clipboard-check text-emerald-500"></i> <span data-i18n="quizTitle">Self-Assessment</span>
+                    </h3>
+                    <div id="quiz-container" class="space-y-4">
+                        <!-- Quiz generated by JS -->
+                    </div>
+                </section>
+
             </div>
         </div>
 
     </main>
 
     <script>
-        // --- Translations & Content ---
+        // --- Bilingual Content Definitions ---
         const content = {
             en: {
                 title: "Sorting Visualizer",
                 comparisons: "Comparisons",
                 arrayAccess: "Array Accesses",
-                compTooltip: "Counts how many times two elements are compared.",
-                accessTooltip: "Counts reads/writes to the array. Reading 1 value = +1. Swapping two numbers = +4 (Read A, Read B, Write B to A's spot, Write A to B's spot).",
                 legUnsorted: "Unsorted",
-                legActive: "Active/Compare",
+                legActive: "Active / Compare",
                 legSorted: "Sorted",
                 bubbleSort: "Bubble Sort",
                 insertionSort: "Insertion Sort",
@@ -232,50 +299,69 @@
                 spdFast: "Fast",
                 currentStep: "Live Explanation",
                 pressPlay: "Press Play or Step Forward to start the visualization.",
-                howItWorks: "Concept",
-                complexityExp: "Complexity Explained",
-                patternImpact: "Why Data Patterns Matter",
-                codeImpl: "Implementation",
+                algoTheory: "Algorithm Theory",
+                timeComp: "Time Complexity",
+                spaceComp: "Space Complexity",
+                codeImplTitle: "Code",
+                
+                // Pedagogical Flow Titles
+                objTitle: "Learning Objectives",
+                objDesc: "Understand the mechanics of standard sorting algorithms, analyze their time and space complexities, and evaluate their suitability for different datasets.",
+                howItWorks: "Concept Explanation",
+                complexityExp: "Deduction of Complexity",
+                patternImpact: "Data Pattern Impact",
+                miscTitle: "Misconception Alert",
+                linkTitle: "Think & Link",
+                quizTitle: "Self-Assessment",
+                quizCorrect: "Correct!",
+                quizWrong: "Incorrect.",
+
                 arrayPattern: "Data Pattern",
                 patRandom: "Random",
                 patReversed: "Reversed (Worst Case)",
                 patNearly: "Nearly Sorted (Best Case)",
-                ttLang: "Change Language",
-                ttNew: "New Random Data",
-                ttRestart: "Restart Same Data",
-                ttPrev: "Previous Step",
-                ttPlay: "Play / Pause",
-                ttNext: "Next Step",
-                ttPattern: "Changes the initial order of the data to see how algorithms perform differently.",
                 
-                // Bubble Sort
-                bubbleDesc: "Imagine lighter bubbles rising to the top of a glass of water. Bubble Sort works similarly by repeatedly stepping through the list, comparing two adjacent items side-by-side (the inner `for j` loop). If they are in the wrong order, it swaps them. This process pushes the largest unsorted item to the very end of the list in each pass.",
-                bubbleCompExp: "Time Complexity is O(n²): Imagine you have 10 students to line up by height. The outer `for i` loop means you walk down the line 10 times, and the inner `for j` loop does up to 10 comparisons each time (10 x 10 = 100 steps). \nSpace Complexity is O(1): You don't need an extra array; you just swap them right where they stand using a temporary variable.",
-                bubblePatExp: "• Random: Average performance, requires many swaps.\n• Nearly Sorted: The `swapped` flag in the code detects if no swaps occurred during a full pass. If so, it breaks early, making it very fast!\n• Reversed: The absolute worst case. Every single adjacent pair is in the wrong order, forcing the algorithm to perform the maximum number of swaps (+4 array accesses each time).",
+                // --- Bubble Sort ---
+                bubbleDesc: "Bubble Sort repeatedly steps through the array, compares adjacent elements, and swaps them if they are in the wrong order. Like lighter bubbles rising to the top of a glass, the largest unsorted item 'bubbles up' to its correct final position at the end of the array in each pass.",
+                bubbleTime: "\\(\\mathcal{O}(n^2)\\)",
+                bubbleSpace: "\\(\\mathcal{O}(1)\\)",
+                bubbleCompExp: "<strong>Why Time is \\(\\mathcal{O}(n^2)\\)?</strong><br>The algorithm uses nested loops. The outer loop runs \\(n\\) times. In each pass, the inner loop makes up to \\(n\\) comparisons. Total operations are roughly \\(n \\times n = n^2\\).<br><br><strong>Why Space is \\(\\mathcal{O}(1)\\)?</strong><br>It is an <em>in-place sorting</em> algorithm. Elements are swapped directly within the original array using only one temporary variable.",
+                bubblePatExp: "<strong>Nearly Sorted: \\(\\mathcal{O}(n)\\)</strong><br>By introducing a <code>swapped</code> boolean flag, the algorithm detects if the array is already sorted. If a full pass occurs without any swaps, it breaks early.<br><br><strong>Reversed (Worst Case): \\(\\mathcal{O}(n^2)\\)</strong><br>Every adjacent pair is out of order, forcing the algorithm to perform the maximum possible number of swaps.",
+                bubbleMisc: "Myth: 'Bubble sort is always the slowest algorithm.'<br>Reality: If the array is already sorted, an optimized bubble sort with a 'swapped' flag completes in \\(\\mathcal{O}(n)\\) time, which is faster than Merge Sort's best case!",
+                bubbleLinkQ: "Why do we iterate 'n - i - 1' times in the inner loop instead of 'n - 1'?",
+                bubbleLinkA: "After the \\(i\\)-th pass, the largest \\(i\\) elements are already guaranteed to be sorted at the end of the array. Comparing them again is redundant and wastes computational resources.",
                 
-                // Insertion Sort
-                insertionDesc: "Think about how you sort a hand of playing cards. You start assuming the first card is already sorted. Then, you pick up a new unsorted card (the `key` variable), and compare it backwards (the `while j >= 0` loop) against the sorted cards, shifting them right until you find the correct spot to insert the `key`. \n\n*Note on Array Access:* Insertion sort reads the key (+1), shifts elements by reading and writing (+2 per shift), and finally writes the key (+1). It does not use standard swaps (+4).",
-                insertionCompExp: "Time Complexity is O(n²): In the worst case, every time you pick up a new card (`key`), the `while` loop forces you to compare and shift it past every single card you've already sorted. \nSpace Complexity is O(1): Like Bubble Sort, it sorts the items exactly where they are without needing extra arrays.",
-                insertionPatExp: "• Random: Average shifting required.\n• Nearly Sorted: The absolute champion here. The `while (j >= 0 && arr[j] > key)` condition fails immediately for most elements, meaning the inner loop doesn't run. It just breezes through the array in O(n) time.\n• Reversed: The worst case. Every new card picked up is smaller than all sorted cards, requiring it to be dragged all the way to the front, maximizing array accesses and shifts.",
+                // --- Insertion Sort ---
+                insertionDesc: "Insertion Sort builds the final sorted array one item at a time. It assumes the first element is sorted. Then, it picks the next unsorted element (the <code>key</code>) and compares it backwards, <em>shifting</em> larger elements to the right until the correct position for the <code>key</code> is found.",
+                insertionTime: "\\(\\mathcal{O}(n^2)\\)",
+                insertionSpace: "\\(\\mathcal{O}(1)\\)",
+                insertionCompExp: "<strong>Why Time is \\(\\mathcal{O}(n^2)\\)?</strong><br>In the worst case, to insert the \\(i\\)-th element, you must shift all \\(i-1\\) previous elements. The sum of shifts is \\(1 + 2 + 3 + ... + (n-1) \\approx \\frac{n^2}{2}\\). Dropping the constant gives \\(\\mathcal{O}(n^2)\\).<br><br><strong>Why Space is \\(\\mathcal{O}(1)\\)?</strong><br>It is an <em>in-place</em> sort. It only requires a single variable (<code>key</code>) to temporarily hold the current item being inserted.",
+                insertionPatExp: "<strong>Nearly Sorted (Best Case): \\(\\mathcal{O}(n)\\)</strong><br>The inner <code>while</code> loop condition <code>arr[j] > key</code> immediately fails. The inner loop never executes, making the time complexity strictly linear.<br><br><strong>Efficiency note:</strong> Insertion sort uses <em>shifting</em> (2 array accesses per shift), which is faster than Bubble sort's <em>swapping</em> (4 array accesses per swap).",
+                insertionMisc: "Myth: 'Insertion sort is useless compared to advanced algorithms.'<br>Reality: Insertion sort has extremely low constant overhead. For very small arrays (e.g., < 20 items), it is often faster than Quicksort or Merge Sort.",
+                insertionLinkQ: "Notice the 'Accesses' counter. Why does Insertion Sort often have fewer array accesses than Bubble Sort?",
+                insertionLinkA: "Bubble sort uses swapping, which costs 4 array accesses (read A, read B, write A, write B). Insertion sort uses shifting, which only costs 2 accesses (read, write) per shift. It's more memory-efficient.",
 
-                // Merge Sort
-                mergeDesc: "Merge Sort uses a 'Divide and Conquer' strategy. Imagine sorting a massive pile of test papers. Instead of doing it all at once, the `merge_sort` function recursively divides the pile in half until you have single papers. Then, the `merge` function pairs them up and merges them in order, building bigger and bigger sorted piles until you're done.",
-                mergeCompExp: "Time Complexity is O(n log n): Because you keep dividing the pile in half, it takes very few steps to break it down (the 'log n' part). Merging them back takes 'n' steps in the `while` loops. \nSpace Complexity is O(n): The downside is you need extra temporary arrays (`L` and `R` in the code) to hold the split halves while you merge them.",
-                mergePatExp: "• Random, Nearly Sorted, Reversed: Merge Sort is incredibly consistent. It always divides the array down to single elements and merges them back up exactly the same way. It doesn't care about the initial order. This makes it highly reliable for large datasets, but it means it cannot take advantage of already-sorted data to save time (unlike Insertion or Bubble sort)."
+                // --- Merge Sort ---
+                mergeDesc: "Merge Sort uses a <strong>Divide and Conquer</strong> strategy. It recursively divides the array in half until each sub-array contains only one element (inherently sorted). Then, it calls the <code>merge</code> function to combine these small sorted arrays back into larger sorted arrays.",
+                mergeTime: "\\(\\mathcal{O}(n \\log n)\\)",
+                mergeSpace: "\\(\\mathcal{O}(n)\\)",
+                mergeCompExp: "<strong>Why Time is \\(\\mathcal{O}(n \\log n)\\)?</strong><br>The array is repeatedly halved. This division forms a tree of depth \\(\\log_2 n\\). At every level of this tree, the <code>merge</code> operation processes a total of \\(n\\) elements. Therefore: <code>Depth</code> \\(\\times\\) <code>Work per level</code> = \\(\\mathcal{O}(n \\log n)\\).<br><br><strong>Why Space is \\(\\mathcal{O}(n)\\)?</strong><br>Standard Merge Sort is <em>not</em> in-place. The <code>merge</code> function requires creating temporary arrays (<code>L</code> and <code>R</code>) to hold the split halves before copying them back.",
+                mergePatExp: "<strong>Consistent Performance:</strong><br>Merge sort is completely blind to the initial data pattern. Whether the data is Random, Reversed, or already Sorted, it systematically divides everything to single elements and merges them. It consistently takes \\(\\mathcal{O}(n \\log n)\\) time.<br><strong>Drawback:</strong> It cannot take advantage of already sorted datasets to terminate early.",
+                mergeMisc: "Myth: 'Merge Sort is universally the best because it is \\(\\mathcal{O}(n \\log n)\\).'<br>Reality: While time-efficient, its \\(\\mathcal{O}(n)\\) space complexity makes it unsuitable for systems with strict memory constraints (like embedded systems).",
+                mergeLinkQ: "Merge Sort doesn't care if the array is already sorted; it still takes \\(\\mathcal{O}(n \\log n)\\) time. Why?",
+                mergeLinkA: "The standard Merge Sort algorithm blindly splits the array down to single elements and merges them back up. It lacks the adaptive mechanism (like Insertion Sort's inner loop condition) to detect existing sorted sequences."
             },
             zh: {
                 title: "排序演算法視覺化",
-                comparisons: "比較次數",
-                arrayAccess: "陣列存取",
-                compTooltip: "計算兩個元素互相比較的次數。",
-                accessTooltip: "計算讀取或寫入陣列的次數。讀取1個值 = +1。交換兩個數字 = +4 (讀取A, 讀取B, 將B寫入A的位置, 將A寫入B的位置)。",
+                comparisons: "比較次數 (Comparisons)",
+                arrayAccess: "陣列存取 (Array Accesses)",
                 legUnsorted: "未排序",
-                legActive: "當前操作",
+                legActive: "當前比較 / 操作",
                 legSorted: "已排序",
-                bubbleSort: "氣泡排序",
-                insertionSort: "插入排序",
-                mergeSort: "合併排序",
-                arraySize: "陣列大小",
+                bubbleSort: "氣泡排序 (Bubble Sort)",
+                insertionSort: "插入排序 (Insertion Sort)",
+                mergeSort: "合併排序 (Merge Sort)",
+                arraySize: "陣列大小 (Array Size)",
                 sizeSmall: "10 (小)",
                 sizeMed: "20 (中)",
                 sizeLarge: "40 (大)",
@@ -283,55 +369,259 @@
                 spdSlow: "慢",
                 spdNormal: "正常",
                 spdFast: "快",
-                currentStep: "即時解說",
+                currentStep: "即時解說 (Live Explanation)",
                 pressPlay: "按下「播放」或「下一步」開始視覺化動畫。",
-                howItWorks: "運作原理",
-                complexityExp: "複雜度解析",
-                patternImpact: "資料分布的影響",
-                codeImpl: "程式碼實作",
-                arrayPattern: "資料分布",
-                patRandom: "隨機",
-                patReversed: "完全反向 (最壞情況)",
-                patNearly: "幾乎已排序 (最佳情況)",
-                ttLang: "切換語言",
-                ttNew: "產生新隨機資料",
-                ttRestart: "重新執行相同資料",
-                ttPrev: "上一步",
-                ttPlay: "播放 / 暫停",
-                ttNext: "下一步",
-                ttPattern: "改變資料的初始排列方式，觀察演算法效能差異。",
+                algoTheory: "演算法理論 (Algorithm Theory)",
+                timeComp: "時間複雜度 (Time Complexity)",
+                spaceComp: "空間複雜度 (Space Complexity)",
+                codeImplTitle: "程式實作 (Code)",
                 
-                bubbleDesc: "想像水杯裡較輕的氣泡會慢慢浮到水面。氣泡排序也是如此：它會從頭到尾掃描數列，透過內層的 `for j` 迴圈每次比較「相鄰的兩個數字」。如果左邊比右邊大，就把它們交換。這樣掃過一輪後，最大的數字就會像氣泡一樣「浮」到最後面。",
-                bubbleCompExp: "時間複雜度 O(n²)：外層的 `for i` 迴圈代表你要從頭走到尾 n 次，而內層的 `for j` 迴圈每次還要比較 n 次 (n x n = n² 步)。\n空間複雜度 O(1)：你不需要額外的陣列，只要使用一個暫存變數在原地交換位置即可。",
-                bubblePatExp: "• 隨機：表現普通，需要大量交換。\n• 幾乎已排序：程式碼中的 `swapped` 標記會偵測如果在一整輪中都沒有發生交換，就會提早 `break` 結束，速度極快！\n• 完全反向：最壞情況。每一對相鄰元素順序都是錯的，迫使演算法執行最多次的交換 (每次交換都會增加 4 次陣列存取)。",
-                
-                insertionDesc: "想像你在玩撲克牌理牌。一開始只有一張牌時，它本身就是「已排序」的。接著，你抽出下一張未排序的牌 (變數 `key`)，透過 `while j >= 0` 迴圈不斷往回比較，把比 `key` 大的牌往右移，直到找到正確的位置插入。\n\n*關於陣列存取：* 插入排序會讀取 key (+1)，移動元素時讀取並寫入 (+2)，最後寫入 key (+1)。它不像氣泡排序那樣使用標準的交換 (+4)。",
-                insertionCompExp: "時間複雜度 O(n²)：在最壞的情況下，每次你拿起一張新牌 (`key`)，`while` 迴圈都必須將它跟前面所有已經排好的牌比較並移動。\n空間複雜度 O(1)：跟氣泡排序一樣，它直接在原本的陣列裡移動數字，不需要額外的記憶體。",
-                insertionPatExp: "• 隨機：需要平均數量的移動。\n• 幾乎已排序：插入排序是此情況的王者！`while (j >= 0 && arr[j] > key)` 條件幾乎一開始就會失敗，內層迴圈根本不會執行，直接以 O(n) 的極快速度掃過陣列。\n• 完全反向：最壞情況。每次抽出的新牌都比前面所有牌小，必須大老遠地拖到最前面，最大化了陣列存取與移動次數。",
+                // Pedagogical Flow Titles
+                objTitle: "學習目標 (Learning Objectives)",
+                objDesc: "理解標準排序演算法 (Sorting Algorithms) 的運作機制，分析其時間複雜度 (Time Complexity) 與空間複雜度 (Space Complexity)，並評估其在不同數據集下的適用性。",
+                howItWorks: "深度解構 (Concept)",
+                complexityExp: "複雜度推導 (Deduction of Complexity)",
+                patternImpact: "資料分布的影響 (Data Pattern Impact)",
+                miscTitle: "常見迷思 (Misconceptions)",
+                linkTitle: "思考與連結 (Think & Link)",
+                quizTitle: "自我檢測 (Self-Assessment)",
+                quizCorrect: "答對了！",
+                quizWrong: "答錯了。",
 
-                mergeDesc: "合併排序使用「分而治之」的策略。想像你要整理一大疊考卷。與其一次整理全部，`merge_sort` 函式會遞迴地把考卷分成兩半，直到變成單張考卷。接著，`merge` 函式再把單張考卷兩兩「合併」成排序好的小疊，最後合併成完整的一大疊。",
-                mergeCompExp: "時間複雜度 O(n log n)：因為你一直把資料對半切，切分的速度非常快 (這就是 log n 的部分)。然後再花 n 步在 `while` 迴圈中把它們合併起來。\n空間複雜度 O(n)：缺點是，在合併的時候，你需要額外的暫存陣列 (程式碼中的 `L` 和 `R`) 來暫放這些資料。",
-                mergePatExp: "• 隨機、幾乎已排序、完全反向：合併排序非常穩定。不管資料長怎樣，它永遠都會照著一樣的步驟切分到單一元素，然後再合併。它不在乎初始順序，這讓它在處理大型資料時很可靠，但也代表它無法像插入排序那樣利用「已經排好」的優勢來提早結束。"
+                arrayPattern: "資料分布 (Data Pattern)",
+                patRandom: "隨機 (Random)",
+                patReversed: "完全反向 (Worst Case)",
+                patNearly: "幾乎排序完成 (Best Case)",
+                
+                // --- Bubble Sort ---
+                bubbleDesc: "氣泡排序 (Bubble Sort) 透過重複走訪陣列 (Array)，比較相鄰元素，若順序錯誤則將其交換 (Swap)。每一輪走訪都會把未排序中最大的數字「浮」到陣列末端的正確位置。",
+                bubbleTime: "\\(\\mathcal{O}(n^2)\\)",
+                bubbleSpace: "\\(\\mathcal{O}(1)\\)",
+                bubbleCompExp: "<strong>為何時間是 \\(\\mathcal{O}(n^2)\\)？</strong><br>演算法使用嵌套迴圈 (Nested Loops)。外層迴圈執行 \\(n\\) 次。在每一次走訪中，內層迴圈最多進行 \\(n\\) 次比較。因此總運算次數約為 \\(n \\times n = n^2\\)。<br><br><strong>為何空間是 \\(\\mathcal{O}(1)\\)？</strong><br>這是一種<em>原地排序 (In-place sorting)</em> 演算法。元素直接在原陣列內交換，只需一個暫存變數 (Variable)，無需額外建立陣列。",
+                bubblePatExp: "<strong>幾乎排序完成：\\(\\mathcal{O}(n)\\)</strong><br>透過加入 <code>swapped</code> 布林 (Boolean) 標記，程式能偵測陣列是否已排好。若完整走訪一次而未發生任何交換，迴圈將提早結束 (Break)。<br><br><strong>完全反向 (最壞情況)：\\(\\mathcal{O}(n^2)\\)</strong><br>每一對相鄰元素的順序都是錯的，迫使演算法執行最大次數的交換。",
+                bubbleMisc: "迷思：「氣泡排序永遠是最慢的演算法。」<br>事實：如果陣列已經接近排序完成，加入 'swapped' 標記優化的氣泡排序只需 \\(\\mathcal{O}(n)\\) 的時間就能完成，這比合併排序的最佳情況還要快！",
+                bubbleLinkQ: "為什麼內層迴圈的執行次數是 'n - i - 1' 而不是 'n - 1'？",
+                bubbleLinkA: "在第 \\(i\\) 輪過後，最大的 \\(i\\) 個元素已經確定被排在陣列的最後面了。再次比較它們是多餘的，會浪費運算資源 (Computational resources)。",
+
+                // --- Insertion Sort ---
+                insertionDesc: "插入排序 (Insertion Sort) 假設第一個元素已排序，然後抽出下一個未排序的元素 (稱為 <code>key</code>)，不斷往回比較，把較大的元素向右<em>平移 (Shift)</em>，直到找到正確的位置插入。",
+                insertionTime: "\\(\\mathcal{O}(n^2)\\)",
+                insertionSpace: "\\(\\mathcal{O}(1)\\)",
+                insertionCompExp: "<strong>為何時間是 \\(\\mathcal{O}(n^2)\\)？</strong><br>在最壞情況下，要插入第 \\(i\\) 個元素，必須將前面 \\(i-1\\) 個元素全部向右平移。平移總次數為 \\(1 + 2 + 3 + ... + (n-1) \\approx \\frac{n^2}{2}\\)，忽略常數項後即為 \\(\\mathcal{O}(n^2)\\)。<br><br><strong>為何空間是 \\(\\mathcal{O}(1)\\)？</strong><br>這也是<em>原地排序 (In-place sorting)</em>，只需一個額外的變數 (<code>key</code>) 來暫存當前準備插入的元素。",
+                insertionPatExp: "<strong>幾乎排序完成 (最佳情況)：\\(\\mathcal{O}(n)\\)</strong><br>插入排序在此情況下效率極高。因為內層 <code>while</code> 迴圈的條件 <code>arr[j] > key</code> 會立即失敗，時間複雜度呈線性。<br><br><strong>存取次數優勢：</strong><br>插入排序使用<em>平移</em> (讀取+寫入 = 2 次存取)，這比起氣泡排序的<em>交換</em> (4 次存取) 更加節省記憶體頻寬。",
+                insertionMisc: "迷思：「與進階演算法相比，插入排序毫無用處。」<br>事實：插入排序的常數開銷 (Constant overhead) 極低。對於極小的陣列（如 < 20 個項目），它通常比快速排序 (Quicksort) 或合併排序更快。",
+                insertionLinkQ: "觀察「陣列存取 (Array Accesses)」計數器。為什麼插入排序的存取次數通常比氣泡排序少？",
+                insertionLinkA: "氣泡排序使用「交換 (Swap)」，每次成本為 4 次陣列存取（讀A、讀B、寫A、寫B）。插入排序使用「平移 (Shift)」，每次平移只需 2 次存取（讀取、寫入），更加節省記憶體頻寬。",
+
+                // --- Merge Sort ---
+                mergeDesc: "合併排序 (Merge Sort) 採用<strong>「分而治之」(Divide and Conquer)</strong> 策略。它遞迴地將陣列對半切分，直到子陣列只剩單一元素。然後呼叫 <code>merge</code> 函數，將這些小陣列合併成已排序的大陣列。",
+                mergeTime: "\\(\\mathcal{O}(n \\log n)\\)",
+                mergeSpace: "\\(\\mathcal{O}(n)\\)",
+                mergeCompExp: "<strong>為何時間是 \\(\\mathcal{O}(n \\log n)\\)？</strong><br>陣列不斷對半切分，形成深度為 \\(\\log_2 n\\) 的樹狀結構。在這棵樹的每一層，<code>merge</code> 操作總共需要處理 \\(n\\) 個元素。因此：<code>深度</code> \\(\\times\\) <code>每層工作量</code> = \\(\\mathcal{O}(n \\log n)\\)。<br><br><strong>為何空間是 \\(\\mathcal{O}(n)\\)？</strong><br>標準合併排序<em>不是</em>原地排序。在 <code>merge</code> 過程中，必須建立額外的暫存陣列 (Temporary Arrays <code>L</code> 和 <code>R</code>) 來存放切分的兩半資料，消耗線性空間。",
+                mergePatExp: "<strong>極度穩定的效能：</strong><br>合併排序完全無視資料的初始分布。無論是隨機、反向或已排序，它都盲目地切分到底再合併。這確保了它在任何情況下都是 \\(\\mathcal{O}(n \\log n)\\)。<br><strong>缺點：</strong>它無法像插入排序那樣，利用「已部分排序」的特性來提早結束。",
+                mergeMisc: "迷思：「合併排序的時間複雜度是 \\(\\mathcal{O}(n \\log n)\\)，所以它在任何情況下都是最好的。」<br>事實：雖然時間效率高，但其 \\(\\mathcal{O}(n)\\) 的空間複雜度使其不適用於記憶體受限的系統（如嵌入式系統 Embedded Systems）。",
+                mergeLinkQ: "合併排序並不在乎陣列是否已經排序好，它總是需要花費 \\(\\mathcal{O}(n \\log n)\\) 的時間。為什麼？",
+                mergeLinkA: "標準的合併排序會盲目地將陣列切分到底，然後再合併。它缺乏像插入排序內層迴圈那樣的適應性機制 (Adaptive mechanism) 來偵測已排序的序列並提早結束。"
             }
         };
 
-        // Fallback for missing ZH keys
-        Object.keys(content.en).forEach(key => {
-            if (!content.zh[key]) content.zh[key] = content.en[key];
-        });
+        // --- Quizzes Data ---
+        const quizzes = {
+            bubble: [
+                {
+                    q_en: "What is the best-case time complexity of an optimized Bubble Sort?",
+                    q_zh: "優化後的氣泡排序 (Bubble Sort) 最佳情況時間複雜度為何？",
+                    options: ["\\(\\mathcal{O}(1)\\)", "\\(\\mathcal{O}(n)\\)", "\\(\\mathcal{O}(n \\log n)\\)", "\\(\\mathcal{O}(n^2)\\)"],
+                    correct: 1,
+                    exp_en: "If the array is already sorted, the algorithm breaks out after one pass \\(\\mathcal{O}(n)\\) without any swaps.",
+                    exp_zh: "如果陣列已經排好，演算法在走訪一次 \\(\\mathcal{O}(n)\\) 且未發生交換後就會提早結束。"
+                },
+                {
+                    q_en: "Which action requires more array accesses?",
+                    q_zh: "哪種操作需要更多的陣列存取 (Array Accesses)？",
+                    options: ["Shifting an element by 1 position", "Swapping two elements", "Reading a variable", "They are the same"],
+                    correct: 1,
+                    exp_en: "Swapping requires 4 accesses (read 2, write 2). Shifting requires 2 accesses (read 1, write 1).",
+                    exp_zh: "交換需要 4 次存取（讀2寫2），平移只需要 2 次存取（讀1寫1）。"
+                }
+            ],
+            insertion: [
+                {
+                    q_en: "Insertion Sort is highly efficient for which type of data pattern?",
+                    q_zh: "插入排序 (Insertion Sort) 對於哪種資料分布效率極高？",
+                    options: ["Completely random data", "Reversely sorted data", "Nearly sorted data", "Data with many duplicates"],
+                    correct: 2,
+                    exp_en: "For nearly sorted data, the inner loop terminates immediately, resulting in \\(\\mathcal{O}(n)\\) complexity.",
+                    exp_zh: "對於接近排序完成的資料，內層迴圈會立即終止，使複雜度接近 \\(\\mathcal{O}(n)\\)。"
+                },
+                {
+                    q_en: "What is the space complexity of Insertion Sort?",
+                    q_zh: "插入排序的空間複雜度 (Space Complexity) 為何？",
+                    options: ["\\(\\mathcal{O}(1)\\)", "\\(\\mathcal{O}(\\log n)\\)", "\\(\\mathcal{O}(n)\\)", "\\(\\mathcal{O}(n^2)\\)"],
+                    correct: 0,
+                    exp_en: "It is an in-place sorting algorithm, requiring only a constant amount of extra memory for the 'key'.",
+                    exp_zh: "它是原地排序演算法，只需要一個常數級別的額外記憶體來儲存 'key'。"
+                }
+            ],
+            merge: [
+                {
+                    q_en: "Which algorithmic strategy does Merge Sort utilize?",
+                    q_zh: "合併排序 (Merge Sort) 使用了哪種演算法策略？",
+                    options: ["Greedy Approach", "Dynamic Programming", "Divide and Conquer", "Backtracking"],
+                    correct: 2,
+                    exp_en: "Merge Sort recursively divides the array into halves until single elements remain, then merges them.",
+                    exp_zh: "合併排序 (Merge Sort) 使用「分而治之 (Divide and Conquer)」策略，遞迴地對半切分陣列再合併。"
+                },
+                {
+                    q_en: "What is a major disadvantage of Merge Sort compared to Insertion Sort?",
+                    q_zh: "與插入排序相比，合併排序的主要缺點是什麼？",
+                    options: ["It is slower on large datasets", "It requires O(n) extra memory space", "It has a worse time complexity", "It cannot sort strings"],
+                    correct: 1,
+                    exp_en: "Merge Sort requires temporary arrays to hold data during the merge process, taking \\(\\mathcal{O}(n)\\) space.",
+                    exp_zh: "合併排序在合併過程中需要建立暫存陣列，消耗 \\(\\mathcal{O}(n)\\) 的空間。"
+                }
+            ]
+        };
+
+        const codeSnippets = {
+            bubble: {
+                python: `def bubble_sort(arr):
+    n = len(arr)
+    # Traverse through all array elements
+    for i in range(n - 1):
+        swapped = False
+        # Last i elements are already in place
+        for j in range(n - i - 1):
+            if arr[j] > arr[j + 1]:
+                # Swap elements (+4 array accesses)
+                arr[j], arr[j+1] = arr[j+1], arr[j]
+                swapped = True
+                
+        # If no two elements were swapped, break early
+        if not swapped:
+            break`,
+                cpp: `void bubbleSort(int arr[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        bool swapped = false;
+        // Last i elements are already in place
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                // Swap elements (+4 array accesses)
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+                swapped = true;
+            }
+        }
+        // Early exit if array is already sorted
+        if (!swapped) break;
+    }
+}`
+            },
+            insertion: {
+                python: `def insertion_sort(arr):
+    # Traverse from 1 to len(arr)
+    for i in range(1, len(arr)):
+        key = arr[i]
+        j = i - 1
+        
+        # Move elements of arr[0..i-1], that are
+        # greater than key, to one position ahead
+        while j >= 0 and arr[j] > key:
+            arr[j + 1] = arr[j] # Shift right
+            j -= 1
+            
+        arr[j + 1] = key`,
+                cpp: `void insertionSort(int arr[], int n) {
+    for (int i = 1; i < n; i++) {
+        int key = arr[i];
+        int j = i - 1;
+        
+        // Move elements of arr[0..i-1], that are
+        // greater than key, to one position ahead
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j]; // Shift right
+            j = j - 1;
+        }
+        arr[j + 1] = key;
+    }
+}`
+            },
+            merge: {
+                python: `def merge_sort(arr):
+    if len(arr) > 1:
+        mid = len(arr) // 2
+        L = arr[:mid]       # Divide into Left half
+        R = arr[mid:]       # Divide into Right half
+
+        merge_sort(L)       # Sorting the first half
+        merge_sort(R)       # Sorting the second half
+
+        i = j = k = 0
+        # Merge the temp arrays back into arr
+        while i < len(L) and j < len(R):
+            if L[i] <= R[j]:
+                arr[k] = L[i]
+                i += 1
+            else:
+                arr[k] = R[j]
+                j += 1
+            k += 1
+        
+        # Checking if any element was left
+        while i < len(L):
+            arr[k] = L[i]
+            i += 1; k += 1
+        while j < len(R):
+            arr[k] = R[j]
+            j += 1; k += 1`,
+                cpp: `void merge(int arr[], int l, int m, int r) {
+    int n1 = m - l + 1;
+    int n2 = r - m;
+    // Create temp arrays (Requires O(n) space)
+    int L[n1], R[n2];
+    
+    // Copy data to temp arrays L[] and R[]
+    for (int i = 0; i < n1; i++) L[i] = arr[l + i];
+    for (int j = 0; j < n2; j++) R[j] = arr[m + 1 + j];
+    
+    int i = 0, j = 0, k = l;
+    // Merge the temp arrays back into arr[l..r]
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) { 
+            arr[k] = L[i]; 
+            i++; 
+        } else { 
+            arr[k] = R[j]; 
+            j++; 
+        }
+        k++;
+    }
+    // Copy the remaining elements of L[] & R[]
+    while (i < n1) { arr[k] = L[i]; i++; k++; }
+    while (j < n2) { arr[k] = R[j]; j++; k++; }
+}
+
+void mergeSort(int arr[], int l, int r) {
+    if (l >= r) return;
+    int m = l + (r - l) / 2;
+    mergeSort(arr, l, m);
+    mergeSort(arr, m + 1, r);
+    merge(arr, l, m, r);
+}`
+            }
+        };
 
         // --- State ---
-        let currentLang = 'zh';
+        let currentLang = 'en';
         let currentAlgo = 'bubble';
         let currentCodeLang = 'python';
         let originalArray = []; 
         let arraySize = 20;
         let dataPattern = 'random';
-        let delay = 50;
+        let delay = 60;
         let isPlaying = false;
         let playInterval = null;
-        
-        // History State for Prev/Next functionality
         let historySteps = [];
         let currentStepIdx = 0;
 
@@ -343,174 +633,210 @@
 
         // --- Initialization ---
         function init() {
-            setLang('en');
+            setLang('en'); // Set English by default
             generateNewArray();
         }
 
+        // --- UI & Language Logic ---
         function setLang(lang) {
             currentLang = lang;
-            document.getElementById('btn-en').className = lang === 'en' ? "px-3 py-1 text-sm font-medium rounded-md bg-white shadow-sm text-blue-600" : "px-3 py-1 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900";
-            document.getElementById('btn-zh').className = lang === 'zh' ? "px-3 py-1 text-sm font-medium rounded-md bg-white shadow-sm text-blue-600" : "px-3 py-1 text-sm font-medium rounded-md text-slate-600 hover:text-slate-900";
+            
+            document.getElementById('btn-en').className = lang === 'en' ? "px-3 py-1 text-sm font-bold rounded-md bg-white shadow-sm text-blue-600 transition-colors" : "px-3 py-1 text-sm font-medium rounded-md text-slate-500 hover:text-slate-800 transition-colors";
+            document.getElementById('btn-zh').className = lang === 'zh' ? "px-3 py-1 text-sm font-bold rounded-md bg-white shadow-sm text-blue-600 transition-colors" : "px-3 py-1 text-sm font-medium rounded-md text-slate-500 hover:text-slate-800 transition-colors";
 
+            // Update Static Text
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (content[lang][key]) {
                     if (el.tagName === 'OPTION') el.text = content[lang][key];
-                    else el.textContent = content[lang][key];
+                    else el.innerHTML = content[lang][key];
                 }
             });
 
             updateInfoPanel();
-            if(historySteps.length > 0) {
-                stepDesc.textContent = historySteps[currentStepIdx].desc[currentLang] || historySteps[currentStepIdx].desc['en'];
+            
+            // Update dynamic visualizer desc
+            if(historySteps.length > 0 && historySteps[currentStepIdx]) {
+                stepDesc.innerHTML = historySteps[currentStepIdx].desc[currentLang] || historySteps[currentStepIdx].desc['en'];
             } else {
-                stepDesc.textContent = content[lang].pressPlay;
+                stepDesc.innerHTML = content[lang].pressPlay;
+            }
+        }
+
+        // Extremely safe MathJax trigger logic
+        function triggerMathJax() {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                // Clear state first to avoid overlapping or missing rendering bugs when DOM changes
+                MathJax.typesetClear();
+                // Typeset specifically the right column containing the pedagogical text
+                MathJax.typesetPromise([document.getElementById('info-panel-content')]).catch(function (err) {
+                    console.error("MathJax Render Error:", err.message);
+                });
             }
         }
 
         function updateInfoPanel() {
             const t = content[currentLang];
-            const algoKey = currentAlgo; 
+            const a = currentAlgo;
             
-            document.getElementById('info-title').textContent = t[`${algoKey}Sort`];
-            document.getElementById('info-desc').textContent = t[`${algoKey}Desc`];
-            document.getElementById('info-complexity-desc').innerText = t[`${algoKey}CompExp`];
-            document.getElementById('info-pattern-desc').innerText = t[`${algoKey}PatExp`];
+            document.getElementById('info-title').innerHTML = t[`${a}Sort`];
             
-            if (algoKey === 'bubble' || algoKey === 'insertion') {
-                document.getElementById('info-time').textContent = "O(n²)";
-                document.getElementById('info-space').textContent = "O(1)";
-            } else {
-                document.getElementById('info-time').textContent = "O(n log n)";
-                document.getElementById('info-space').textContent = "O(n)";
-            }
+            // Inject Content with MathJax delimiters
+            document.getElementById('info-time').innerHTML = t[`${a}Time`];
+            document.getElementById('info-space').innerHTML = t[`${a}Space`];
+            document.getElementById('info-desc').innerHTML = t[`${a}Desc`];
+            document.getElementById('info-complexity-desc').innerHTML = t[`${a}CompExp`];
+            document.getElementById('info-pattern-desc').innerHTML = t[`${a}PatExp`];
+            
+            // Pedagogical additions
+            document.getElementById('info-misc').innerHTML = t[`${a}Misc`];
+            document.getElementById('info-link-q').innerHTML = t[`${a}LinkQ`];
+            document.getElementById('info-link-a').innerHTML = t[`${a}LinkA`];
+            
+            // Hide Think & Link answer upon refresh
+            document.getElementById('info-link-a').classList.add('hidden');
+            document.getElementById('link-chevron').classList.remove('rotate-180');
             
             showCode(currentCodeLang);
+            renderQuiz();
+            
+            // Trigger MathJax to re-render formulas after the innerHTML has been swapped
+            setTimeout(triggerMathJax, 50); 
+        }
+
+        function toggleAnswer() {
+            const ans = document.getElementById('info-link-a');
+            const icon = document.getElementById('link-chevron');
+            if (ans.classList.contains('hidden')) {
+                ans.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                ans.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
+        // --- Quiz Logic ---
+        function renderQuiz() {
+            const quizContainer = document.getElementById('quiz-container');
+            quizContainer.innerHTML = '';
+            const qList = quizzes[currentAlgo];
+            
+            qList.forEach((q, index) => {
+                const questionText = currentLang === 'en' ? q.q_en : q.q_zh;
+                const savedAns = sessionStorage.getItem(`quiz_${currentAlgo}_${index}`);
+                
+                let html = `<div class="mb-5 last:mb-0"><p class="text-sm font-semibold text-slate-800 mb-3">${index + 1}. ${questionText}</p><div class="flex flex-col gap-2">`;
+                
+                q.options.forEach((opt, optIndex) => {
+                    const isChecked = savedAns == optIndex ? 'checked' : '';
+                    let statusClass = '';
+                    let iconHtml = '';
+                    
+                    if (savedAns != null) {
+                        if (optIndex === q.correct) {
+                            statusClass = 'border-emerald-500 bg-emerald-50 text-emerald-800';
+                            iconHtml = `<i class="fa-solid fa-check text-emerald-500 ml-auto"></i>`;
+                        } else if (savedAns == optIndex && optIndex !== q.correct) {
+                            statusClass = 'border-red-400 bg-red-50 text-red-800';
+                            iconHtml = `<i class="fa-solid fa-xmark text-red-500 ml-auto"></i>`;
+                        } else {
+                            statusClass = 'border-slate-200 bg-slate-50 opacity-50';
+                        }
+                    } else {
+                        statusClass = 'border-slate-200 hover:border-blue-300 hover:bg-slate-50 cursor-pointer transition-colors';
+                    }
+
+                    html += `
+                        <label class="relative flex items-center p-3 border rounded-lg ${statusClass}">
+                            <input type="radio" name="q_${currentAlgo}_${index}" value="${optIndex}" class="quiz-radio sr-only" onchange="checkQuiz(${index}, ${optIndex})" ${isChecked} ${savedAns != null ? 'disabled' : ''}>
+                            <span class="text-sm flex-grow">${opt}</span>
+                            ${iconHtml}
+                        </label>
+                    `;
+                });
+                
+                html += `</div>`;
+                
+                if (savedAns != null) {
+                    const expText = currentLang === 'en' ? q.exp_en : q.exp_zh;
+                    const resultText = savedAns == q.correct ? content[currentLang].quizCorrect : content[currentLang].quizWrong;
+                    const resultColor = savedAns == q.correct ? 'text-emerald-600' : 'text-red-500';
+                    
+                    html += `<div class="mt-3 p-3 bg-slate-100 rounded-lg text-sm">
+                        <span class="font-bold ${resultColor}">${resultText}</span> <span class="text-slate-700">${expText}</span>
+                    </div>`;
+                }
+                
+                html += `</div>`;
+                quizContainer.innerHTML += html;
+            });
+        }
+
+        function checkQuiz(qIndex, selectedOpt) {
+            sessionStorage.setItem(`quiz_${currentAlgo}_${qIndex}`, selectedOpt);
+            renderQuiz();
+            setTimeout(triggerMathJax, 50); // Re-render math in explanations
+        }
+
+        // --- Code Highlighting ---
+        function simpleSyntaxHighlight(code, lang) {
+            let highlighted = code
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") // Escape HTML
+                .replace(/\b(\d+)\b/g, '<span class="token-num">$1</span>'); // Numbers
+                
+            if (lang === 'python') {
+                highlighted = highlighted
+                    .replace(/\b(def|for|in|range|if|while|and|or|not|break|True|False|len)\b/g, '<span class="token-kw">$1</span>')
+                    .replace(/#.*/g, '<span class="token-comment">$&</span>');
+            } else {
+                highlighted = highlighted
+                    .replace(/\b(void|int|bool|for|if|else|while|break|true|false|return)\b/g, '<span class="token-kw">$1</span>')
+                    .replace(/\b(int|bool|void)\b/g, '<span class="token-type">$1</span>')
+                    .replace(/\b(mergeSort|merge|bubbleSort|insertionSort)\b/g, '<span class="token-func">$1</span>')
+                    .replace(/\/\/.*/g, '<span class="token-comment">$&</span>');
+            }
+            return highlighted;
         }
 
         function showCode(lang) {
             currentCodeLang = lang;
-            const codes = {
-                bubbleCodePy: `def bubble_sort(arr):
-    n = len(arr)
-    for i in range(n - 1):
-        swapped = False
-        for j in range(n - i - 1):
-            if arr[j] > arr[j + 1]:
-                # Swap elements (+4 array access)
-                arr[j], arr[j+1] = arr[j+1], arr[j]
-                swapped = True
-        if not swapped:
-            break`,
-                bubbleCodeCpp: `void bubbleSort(int arr[], int n) {
-    for (int i = 0; i < n - 1; i++) {
-        bool swapped = false;
-        for (int j = 0; j < n - i - 1; j++) {
-            if (arr[j] > arr[j + 1]) {
-                // Swap elements (+4 array access)
-                swap(arr[j], arr[j + 1]);
-                swapped = true;
+            const btnPy = document.getElementById('tab-python');
+            const btnCpp = document.getElementById('tab-cpp');
+            
+            if (lang === 'python') {
+                btnPy.className = "flex-1 py-2 text-xs font-bold uppercase tracking-wider text-blue-400 border-b-2 border-blue-400 bg-[#1e293b] transition-colors";
+                btnCpp.className = "flex-1 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors";
+            } else {
+                btnCpp.className = "flex-1 py-2 text-xs font-bold uppercase tracking-wider text-blue-400 border-b-2 border-blue-400 bg-[#1e293b] transition-colors";
+                btnPy.className = "flex-1 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition-colors";
             }
-        }
-        if (!swapped) break;
-    }
-}`,
-                insertionCodePy: `def insertion_sort(arr):
-    # First element is inherently sorted
-    for i in range(1, len(arr)):
-        key = arr[i]
-        j = i - 1
-        # Shift elements right
-        while j >= 0 and arr[j] > key:
-            arr[j + 1] = arr[j]
-            j -= 1
-        arr[j + 1] = key`,
-                insertionCodeCpp: `void insertionSort(int arr[], int n) {
-    // First element is inherently sorted
-    for (int i = 1; i < n; i++) {
-        int key = arr[i];
-        int j = i - 1;
-        // Shift elements right
-        while (j >= 0 && arr[j] > key) {
-            arr[j + 1] = arr[j];
-            j--;
-        }
-        arr[j + 1] = key;
-    }
-}`,
-                mergeCodePy: `def merge_sort(arr):
-    if len(arr) > 1:
-        mid = len(arr) // 2
-        L = arr[:mid]
-        R = arr[mid:]
-
-        merge_sort(L)
-        merge_sort(R)
-
-        i = j = k = 0
-        while i < len(L) and j < len(R):
-            if L[i] <= R[j]:
-                arr[k] = L[i]
-                i += 1
-            else:
-                arr[k] = R[j]
-                j += 1
-            k += 1
-        
-        # Place remaining elements
-        while i < len(L):
-            arr[k] = L[i]
-            i += 1; k += 1
-        while j < len(R):
-            arr[k] = R[j]
-            j += 1; k += 1`,
-                mergeCodeCpp: `void merge(int arr[], int l, int m, int r) {
-    // Implementation of merging two halves
-    // using temporary arrays L[] and R[]
-}
-
-void mergeSort(int arr[], int l, int r) {
-    if (l >= r) return;
-    int m = l + (r - l) / 2;
-    mergeSort(arr, l, m);
-    mergeSort(arr, m + 1, r);
-    merge(arr, l, m, r);
-}`
-            };
             
-            document.getElementById('tab-python').className = lang === 'python' ? "text-blue-400 font-bold text-xs uppercase tracking-wider" : "text-slate-500 hover:text-slate-300 font-bold text-xs uppercase tracking-wider cursor-pointer";
-            document.getElementById('tab-cpp').className = lang === 'cpp' ? "text-blue-400 font-bold text-xs uppercase tracking-wider" : "text-slate-500 hover:text-slate-300 font-bold text-xs uppercase tracking-wider cursor-pointer";
-            
-            let codeKey = `${currentAlgo}Code${lang === 'python' ? 'Py' : 'Cpp'}`;
-            document.getElementById('code-block').textContent = codes[codeKey];
+            const rawCode = codeSnippets[currentAlgo][lang];
+            document.getElementById('code-block').innerHTML = simpleSyntaxHighlight(rawCode, lang);
         }
 
+        // --- Controls Logic ---
         function selectAlgo(algo) {
             currentAlgo = algo;
             document.querySelectorAll('.algo-btn').forEach(btn => {
-                btn.className = "algo-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors";
+                btn.className = "algo-btn flex-grow xl:flex-none px-3 py-2 rounded-xl text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all whitespace-nowrap";
             });
-            document.getElementById(`algo-${algo}`).className = "algo-btn px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white shadow-sm transition-colors";
+            document.getElementById(`algo-${algo}`).className = "algo-btn flex-grow xl:flex-none px-3 py-2 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-md shadow-blue-200 transition-all whitespace-nowrap";
+            
             updateInfoPanel();
             resetToOriginal(); 
         }
 
-        function changePattern(pattern) {
-            dataPattern = pattern;
-            generateNewArray();
-        }
-
-        function updateSize(val) {
-            arraySize = parseInt(val);
-            generateNewArray();
-        }
+        function changePattern(pattern) { dataPattern = pattern; generateNewArray(); }
+        function updateSize(val) { arraySize = parseInt(val); generateNewArray(); }
 
         function updateSpeed(val, btn) {
             delay = parseInt(val);
             document.querySelectorAll('.speed-btn').forEach(b => {
-                b.className = "speed-btn flex-1 text-xs font-medium rounded text-slate-600 hover:text-slate-900";
+                b.className = "speed-btn flex-1 text-xs font-semibold rounded-md text-slate-500 hover:text-slate-800 transition-colors";
             });
-            btn.className = "speed-btn flex-1 text-xs font-medium rounded bg-white shadow-sm text-blue-600";
+            btn.className = "speed-btn flex-1 text-xs font-bold rounded-md bg-white shadow-sm text-blue-600 transition-colors";
         }
 
         function generateNewArray() {
@@ -538,10 +864,10 @@ void mergeSort(int arr[], int l, int r) {
             precomputeAlgorithm();
             currentStepIdx = 0;
             renderState(historySteps[0]);
-            stepDesc.textContent = content[currentLang].pressPlay;
+            stepDesc.innerHTML = content[currentLang].pressPlay;
         }
 
-        // --- Precompute Algorithm Logic (Ensures reliable Prev/Next) ---
+        // --- Precompute Algorithm Logic ---
         function precomputeAlgorithm() {
             historySteps = [];
             let arr = [...originalArray];
@@ -549,8 +875,8 @@ void mergeSort(int arr[], int l, int r) {
             let sorted = [];
 
             pushState(arr, [], [], metrics, {
-                en: "Initial array ready.",
-                zh: "初始陣列已就緒。"
+                en: "Initial array ready. <br><span class='text-slate-500 text-xs'>Pattern: " + dataPattern + "</span>",
+                zh: "初始陣列 (Array) 已就緒。<br><span class='text-slate-500 text-xs'>分布: " + dataPattern + "</span>"
             });
 
             if (currentAlgo === 'bubble') precomputeBubble(arr, metrics, sorted);
@@ -558,8 +884,8 @@ void mergeSort(int arr[], int l, int r) {
             else if (currentAlgo === 'merge') precomputeMerge(arr, metrics, sorted);
 
             pushState(arr, [], arr.map((_, i) => i), metrics, {
-                en: "Sorting Complete!",
-                zh: "排序完成！"
+                en: "<strong>Sorting Complete!</strong> All elements are in their final positions.",
+                zh: "<strong>排序完成！</strong> 所有元素皆已到達最終位置。"
             });
         }
 
@@ -581,8 +907,8 @@ void mergeSort(int arr[], int l, int r) {
                     metrics.comp++;
                     metrics.access += 2; // Read arr[j], arr[j+1]
                     pushState(arr, [j, j+1], sorted, metrics, {
-                        en: `(Inner loop) Comparing arr[j]=${arr[j]} and arr[j+1]=${arr[j+1]}`,
-                        zh: `(內層迴圈) 比較 arr[j]=${arr[j]} 和 arr[j+1]=${arr[j+1]}`
+                        en: `(Inner Loop) Comparing <span class="font-mono bg-blue-100 px-1 rounded">${arr[j]}</span> and <span class="font-mono bg-blue-100 px-1 rounded">${arr[j+1]}</span>`,
+                        zh: `(內層迴圈) 比較 <span class="font-mono bg-blue-100 px-1 rounded">${arr[j]}</span> 與 <span class="font-mono bg-blue-100 px-1 rounded">${arr[j+1]}</span>`
                     });
                     
                     if (arr[j] > arr[j+1]) {
@@ -592,21 +918,21 @@ void mergeSort(int arr[], int l, int r) {
                         metrics.access += 4; // Swap is 4 accesses
                         swapped = true;
                         pushState(arr, [j, j+1], sorted, metrics, {
-                            en: `Swapped ${arr[j+1]} and ${arr[j]} (+4 array accesses)`,
-                            zh: `交換 ${arr[j+1]} 和 ${arr[j]} (+4 陣列存取)`
+                            en: `<span class="text-pink-600 font-bold">Swapped</span> elements since ${arr[j+1]} < ${arr[j]}. <br><span class="text-xs text-slate-500">(+4 Array Accesses)</span>`,
+                            zh: `因 ${arr[j+1]} < ${arr[j]}，故<span class="text-pink-600 font-bold">交換 (Swap)</span> 元素。<br><span class="text-xs text-slate-500">(增加 4 次陣列存取)</span>`
                         });
                     }
                 }
                 sorted.push(n - i - 1);
                 pushState(arr, [], sorted, metrics, {
-                    en: `Pass complete. Element ${arr[n - i - 1]} is in its final position.`,
-                    zh: `一輪結束。元素 ${arr[n - i - 1]} 已到達最終位置。`
+                    en: `Pass complete. Largest element <span class="font-bold text-emerald-600">${arr[n - i - 1]}</span> bubbled to its final position.`,
+                    zh: `走訪完成。最大元素 <span class="font-bold text-emerald-600">${arr[n - i - 1]}</span> 如氣泡般浮到最終位置。`
                 });
                 if (!swapped) {
                     for(let k=0; k < n - i - 1; k++) sorted.push(k);
                     pushState(arr, [], sorted, metrics, {
-                        en: `No swaps occurred (swapped=False). Array is fully sorted!`,
-                        zh: `沒有發生任何交換 (swapped=False)。陣列已完全排序！`
+                        en: `No swaps occurred (<code>swapped = False</code>). Array is fully sorted early! <br><span class="text-xs text-emerald-600 font-bold">O(n) Best Case!</span>`,
+                        zh: `未發生任何交換 (<code>swapped = False</code>)。提早判定排序完成！<br><span class="text-xs text-emerald-600 font-bold">達成 O(n) 最佳情況！</span>`
                     });
                     break;
                 }
@@ -615,10 +941,10 @@ void mergeSort(int arr[], int l, int r) {
         }
 
         function precomputeInsertion(arr, metrics, sorted) {
-            sorted.push(0); // First element is inherently sorted
+            sorted.push(0);
             pushState(arr, [0], sorted, metrics, {
-                en: `Index 0 is inherently sorted. Starting from index 1.`,
-                zh: `索引 0 本身已視為排序好。從索引 1 開始。`
+                en: `Index 0 is inherently sorted. Starting outer loop from index 1.`,
+                zh: `索引 0 視為已排序。外層迴圈從索引 1 開始。`
             });
 
             for (let i = 1; i < arr.length; i++) {
@@ -627,24 +953,26 @@ void mergeSort(int arr[], int l, int r) {
                 let j = i - 1;
                 
                 pushState(arr, [i], sorted, metrics, {
-                    en: `Outer loop: Selected key=${key} to insert.`,
-                    zh: `外層迴圈：選擇 key=${key} 準備插入。`
+                    en: `Selected <span class="font-bold text-indigo-600">Key = ${key}</span> to insert.`,
+                    zh: `選取 <span class="font-bold text-indigo-600">Key = ${key}</span> 準備插入。`
                 });
 
+                let shifted = false;
                 while (j >= 0) {
                     metrics.comp++;
                     metrics.access++; // Read arr[j] for comparison
                     pushState(arr, [j, j+1], sorted, metrics, {
-                        en: `While loop: Comparing sorted arr[j]=${arr[j]} with key=${key}`,
-                        zh: `While迴圈：比較已排序的 arr[j]=${arr[j]} 和 key=${key}`
+                        en: `Comparing sorted element <span class="font-mono bg-blue-100 px-1 rounded">${arr[j]}</span> with Key <span class="font-bold text-indigo-600">${key}</span>.`,
+                        zh: `比較已排序元素 <span class="font-mono bg-blue-100 px-1 rounded">${arr[j]}</span> 與 Key <span class="font-bold text-indigo-600">${key}</span>。`
                     });
                     
                     if (arr[j] > key) {
                         arr[j + 1] = arr[j];
                         metrics.access += 2; // Read arr[j], write to arr[j+1]
+                        shifted = true;
                         pushState(arr, [j, j+1], sorted, metrics, {
-                            en: `Shifted ${arr[j]} to the right (arr[j+1] = arr[j]).`,
-                            zh: `將 ${arr[j]} 往右移動 (arr[j+1] = arr[j])。`
+                            en: `<span class="text-pink-600 font-bold">Shifted</span> ${arr[j]} to the right. <br><span class="text-xs text-slate-500">(+2 Array Accesses, no full swap!)</span>`,
+                            zh: `將 ${arr[j]} 向右<span class="text-pink-600 font-bold">平移 (Shift)</span>。<br><span class="text-xs text-slate-500">(僅需 2 次存取，無需完整交換！)</span>`
                         });
                         j--;
                     } else {
@@ -654,9 +982,13 @@ void mergeSort(int arr[], int l, int r) {
                 arr[j + 1] = key;
                 metrics.access++; // Write key
                 sorted.push(i);
+                
+                let actionTextEN = shifted ? "Inserted" : "No shift needed for";
+                let actionTextZH = shifted ? "插入" : "無須平移，放置";
+                
                 pushState(arr, [j+1], sorted, metrics, {
-                    en: `Inserted key=${key} into correct position (arr[j+1] = key).`,
-                    zh: `將 key=${key} 插入正確位置 (arr[j+1] = key)。`
+                    en: `${actionTextEN} <span class="font-bold text-emerald-600">Key = ${key}</span> at correct position.`,
+                    zh: `${actionTextZH} <span class="font-bold text-emerald-600">Key = ${key}</span> 至正確位置。`
                 });
             }
         }
@@ -679,41 +1011,48 @@ void mergeSort(int arr[], int l, int r) {
             for (let i = 0; i < n1; i++) { L[i] = arr[left + i]; metrics.access += 2; } 
             for (let j = 0; j < n2; j++) { R[j] = arr[mid + 1 + j]; metrics.access += 2; }
 
+            pushState(arr, [], sorted, metrics, {
+                en: `<span class="text-purple-600 font-bold text-xs uppercase tracking-wide">Divide & Conquer</span><br>Merging two sub-arrays: [${L.join(', ')}] and [${R.join(', ')}]. <br><span class="text-xs text-slate-500">Notice O(n) temporary space is used.</span>`,
+                zh: `<span class="text-purple-600 font-bold text-xs uppercase tracking-wide">分而治之 (Divide & Conquer)</span><br>合併兩個子陣列：[${L.join(', ')}] 與 [${R.join(', ')}]。<br><span class="text-xs text-slate-500">注意此過程使用了 O(n) 的暫存空間。</span>`
+            });
+
             let i = 0, j = 0, k = left;
 
             while (i < n1 && j < n2) {
                 metrics.comp++;
                 pushState(arr, [left+i, mid+1+j], sorted, metrics, {
-                    en: `Merging: Comparing L[i]=${L[i]} and R[j]=${R[j]}`,
-                    zh: `合併中：比較 L[i]=${L[i]} 和 R[j]=${R[j]}`
+                    en: `Comparing <span class="font-mono bg-blue-100 px-1 rounded">${L[i]}</span> (Left) and <span class="font-mono bg-blue-100 px-1 rounded">${R[j]}</span> (Right)`,
+                    zh: `比較左側的 <span class="font-mono bg-blue-100 px-1 rounded">${L[i]}</span> 與右側的 <span class="font-mono bg-blue-100 px-1 rounded">${R[j]}</span>`
                 });
                 
                 if (L[i] <= R[j]) {
                     arr[k] = L[i];
                     metrics.access++;
                     pushState(arr, [k], sorted, metrics, {
-                        en: `Placed L[i]=${L[i]} into main array (arr[k] = L[i]).`,
-                        zh: `將 L[i]=${L[i]} 放入主要陣列 (arr[k] = L[i])。`
+                        en: `Selected <span class="font-bold text-emerald-600">${L[i]}</span> from Left array.`,
+                        zh: `從左側陣列選取較小的 <span class="font-bold text-emerald-600">${L[i]}</span>。`
                     });
                     i++;
                 } else {
                     arr[k] = R[j];
                     metrics.access++;
                     pushState(arr, [k], sorted, metrics, {
-                        en: `Placed R[j]=${R[j]} into main array (arr[k] = R[j]).`,
-                        zh: `將 R[j]=${R[j]} 放入主要陣列 (arr[k] = R[j])。`
+                        en: `Selected <span class="font-bold text-emerald-600">${R[j]}</span> from Right array.`,
+                        zh: `從右側陣列選取較小的 <span class="font-bold text-emerald-600">${R[j]}</span>。`
                     });
                     j++;
                 }
+                if (!sorted.includes(k)) sorted.push(k);
                 k++;
             }
 
             while (i < n1) {
                 arr[k] = L[i];
                 metrics.access++;
+                if (!sorted.includes(k)) sorted.push(k);
                 pushState(arr, [k], sorted, metrics, {
-                    en: `Placed remaining L[i]=${L[i]}.`,
-                    zh: `放入左側剩餘的 L[i]=${L[i]}。`
+                    en: `Placed remaining <span class="font-bold text-emerald-600">${L[i]}</span> from Left.`,
+                    zh: `放入左側剩餘的 <span class="font-bold text-emerald-600">${L[i]}</span>。`
                 });
                 i++; k++;
             }
@@ -721,9 +1060,10 @@ void mergeSort(int arr[], int l, int r) {
             while (j < n2) {
                 arr[k] = R[j];
                 metrics.access++;
+                if (!sorted.includes(k)) sorted.push(k);
                 pushState(arr, [k], sorted, metrics, {
-                    en: `Placed remaining R[j]=${R[j]}.`,
-                    zh: `放入右側剩餘的 R[j]=${R[j]}。`
+                    en: `Placed remaining <span class="font-bold text-emerald-600">${R[j]}</span> from Right.`,
+                    zh: `放入右側剩餘的 <span class="font-bold text-emerald-600">${R[j]}</span>。`
                 });
                 j++; k++;
             }
@@ -732,21 +1072,26 @@ void mergeSort(int arr[], int l, int r) {
         // --- Rendering ---
         function renderState(state) {
             container.innerHTML = '';
+            
             state.array.forEach((val, idx) => {
                 const bar = document.createElement('div');
                 const heightPct = (val / 100) * 100;
                 bar.style.height = `${heightPct}%`;
                 bar.style.width = `${100 / arraySize}%`;
-                bar.className = 'bar rounded-t-sm border border-white/20 relative ';
+                bar.className = 'bar rounded-t-[3px] border border-white/20 relative ';
                 
-                if (state.active.includes(idx)) bar.classList.add('bg-amber-400');
-                else if (state.sorted.includes(idx)) bar.classList.add('bg-emerald-500');
-                else bar.classList.add('bg-blue-400');
+                if (state.active.includes(idx)) {
+                    bar.classList.add('bg-amber-400', 'shadow-[0_0_8px_rgba(251,191,36,0.6)]', 'z-10');
+                } else if (state.sorted.includes(idx)) {
+                    bar.classList.add('bg-emerald-500');
+                } else {
+                    bar.classList.add('bg-blue-400', 'opacity-80');
+                }
                 
                 if (arraySize <= 25) {
                     const label = document.createElement('span');
                     label.textContent = val;
-                    label.className = 'text-[10px] text-white font-bold absolute bottom-1 w-full text-center hidden sm:block';
+                    label.className = 'text-[10px] text-white font-bold absolute bottom-1 w-full text-center hidden md:block';
                     bar.appendChild(label);
                 }
                 container.appendChild(bar);
@@ -754,9 +1099,9 @@ void mergeSort(int arr[], int l, int r) {
 
             document.getElementById('metric-comp').textContent = state.metrics.comp;
             document.getElementById('metric-access').textContent = state.metrics.access;
-            stepDesc.textContent = state.desc[currentLang] || state.desc['en'];
+            stepDesc.innerHTML = state.desc[currentLang] || state.desc['en'];
             
-            const progress = (currentStepIdx / (historySteps.length - 1)) * 100;
+            const progress = (currentStepIdx / Math.max(1, historySteps.length - 1)) * 100;
             progressBar.style.width = `${progress}%`;
         }
 
@@ -793,10 +1138,12 @@ void mergeSort(int arr[], int l, int r) {
                 btnPlay.innerHTML = '<i class="fa-solid fa-pause"></i>';
                 btnPlay.classList.replace('bg-emerald-500', 'bg-amber-500');
                 btnPlay.classList.replace('hover:bg-emerald-600', 'hover:bg-amber-600');
+                btnPlay.classList.replace('shadow-emerald-200', 'shadow-amber-200');
             } else {
-                btnPlay.innerHTML = '<i class="fa-solid fa-play"></i>';
+                btnPlay.innerHTML = '<i class="fa-solid fa-play ml-0.5"></i>';
                 btnPlay.classList.replace('bg-amber-500', 'bg-emerald-500');
                 btnPlay.classList.replace('hover:bg-amber-600', 'hover:bg-emerald-600');
+                btnPlay.classList.replace('shadow-amber-200', 'shadow-emerald-200');
             }
         }
 
