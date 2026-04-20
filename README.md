@@ -1,7 +1,8 @@
 # Sorting Algorithms Visualizer (Bubble,Insertion,Merge Sort)
 
 This interactive web application is designed to help students and beginners truly understand how fundamental sorting algorithms work behind the scenes.
-<img width="2439" height="1301" alt="image" src="https://github.com/user-attachments/assets/f352f443-6fdb-4527-b55e-2e6d6b2e43ed" />
+<img width="1380" height="975" alt="image" src="https://github.com/user-attachments/assets/912862d8-0c52-41a0-8d8d-8a9f03050ae7" />
+
 
 ## 🎯 Why Use This Tool?
 
@@ -14,12 +15,6 @@ Reading code from a textbook can be confusing. It's hard to visualize how arrays
 *   **Data Patterns Impact:** You can change the initial data to be *Random*, *Nearly Sorted*, or *Reversed*. This is crucial for understanding Best Case vs. Worst Case scenarios. Watch how Insertion Sort breezes through "Nearly Sorted" data, but struggles with "Reversed" data!
 *   **Bilingual Support:** Easily toggle between English and Traditional Chinese (繁中) to learn in the language you are most comfortable with.
 *   **Code Implementations:** View the actual Python and C++ code right next to the visualization.
-
-## 📚 Algorithms Covered
-
-1.  **Bubble Sort:** Great for learning the absolute basics of swapping elements, but notoriously slow for large datasets.
-2.  **Insertion Sort:** Mimics how you sort playing cards in your hand. Pay attention to how it shifts elements instead of doing full swaps!
-3.  **Merge Sort:** A powerful "Divide and Conquer" algorithm. Watch how it splits the array down to single elements and merges them back together.
 
 ## 🛠️ How to Use
 
